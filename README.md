@@ -2,7 +2,7 @@
 
 A browser-based 3D retail simulation — build a store, stock it, run it, grow it into a chain. Inspired by the King of Retail games.
 
-## Status: Phase 3 — Staff & Atmosphere
+## Status: Phase 3 — Staff & Atmosphere, plus an out-of-phase visual/content pass
 
 **Phase 1 — build tool.** Grid-snapped placement of floors, walls, shelves, and a
 checkout counter; a Build Mode (orbit camera) and Walk Mode (first-person,
@@ -25,6 +25,18 @@ low shelves, Cashiers assigned to a checkout speed up customer checkout, and Jan
 raise the store's cleanliness score. Cleanliness decays over time and with foot traffic,
 and — together with a lighting-mood setting (Bright/Neutral/Warm/Dim) — nudges how often
 customers show up. Payroll is deducted at day-end alongside rent.
+
+**Visual/content pass (out of phase order, by request).** True AAA/photoreal visuals
+aren't achievable without a real art-asset pipeline (hand-modeled meshes, sourced PBR
+textures) — that's still Phase 8. What *is* achievable in code: the product catalog grew
+from 8 to 74 items across 14 categories, each rendered on shelves as an actual package
+mesh (bottle/can/box/bag/jar/produce, composed from primitives — no external assets) sized
+by real stock levels instead of one flat-colored block. Shelves are now a real shelving
+unit (metal uprights, back panel, three tiers) and the checkout is a real counter (cabinet,
+countertop, conveyor-belt inset, bagging shelf, register). Customers get a deterministic
+shirt-color variety and carry a visible basket once they've picked something up. Sales pop
+a floating "+$X.XX" at checkout. Floors and the exterior ground use a procedural
+canvas-texture instead of a flat color.
 
 The renderer targets `WebGPURenderer` (three.js) with automatic fallback to WebGL2,
 both at the three.js level (`navigator.gpu` unavailable) and at the application level
@@ -56,10 +68,13 @@ npm run dev
 ```
 src/
   scenes/       BuildModeScene, WalkModeScene
-  components/3d Floor, Wall, Fixture, Ghost, GridFloor, Player, LayoutRenderer,
-                CustomerNPC, CustomersLayer, StaffNPC, StaffLayer, StoreLighting,
-                SimulationDriver, LODTestProps
-  components/ui HUD, BuildToolbar, InventoryPanel, StaffPanel, FinancePanel
+  components/3d Floor, Wall, Fixture (dispatches to ShelfFixture/CheckoutFixture),
+                ProductMesh (6 procedural package shapes), Ghost, GridFloor, Player,
+                LayoutRenderer, CustomerNPC, CustomersLayer, StaffNPC, StaffLayer,
+                StoreLighting, SalePopsLayer, SimulationDriver, LODTestProps, textures.ts
+                (procedural canvas floor/ground textures)
+  components/ui HUD, BuildToolbar, InventoryPanel (category-filterable), StaffPanel,
+                FinancePanel
   stores/       useGameMode, useBuildTool, useStoreLayout, useInventory, useFinance,
                 useGameClock, useCustomers, useStaff, useStoreAtmosphere (Zustand)
   systems/      grid.ts, pathfinding.ts (grid A*), movement.ts (shared path-stepping,
@@ -67,8 +82,9 @@ src/
                 staffAI.ts (pure: on-duty windows, morale target/drift, checkout speed)
                 / staffSimulation.ts (impure per-frame orchestrator — deliberately
                 outside Zustand so movement doesn't re-render React every frame),
-                financeTick.ts
-  data/         fixtureDefinitions.ts, products.ts, staffDefinitions.ts
+                salePops.ts (transient checkout feedback), financeTick.ts
+  data/         fixtureDefinitions.ts, products.ts (74 items, shape+color+accentColor),
+                staffDefinitions.ts
   hooks/        useGridSnap, useSaveGame, useGameLoop
   devTestHooks.ts  dev-only (import.meta.env.DEV-gated, dead-code-eliminated in
                    production) — exposes stores on window for E2E test scripts

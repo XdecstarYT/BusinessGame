@@ -16,6 +16,7 @@ import type { Cell } from './grid'
 import { cellToVec, moveAlongPath, routeEntityTo } from './movement'
 import { checkoutStaffing } from './staffSimulation'
 import { checkoutDwellMultiplier } from './staffAI'
+import { spawnSalePop } from './salePops'
 import {
   cartTotal,
   pickCheckout,
@@ -190,6 +191,7 @@ function completeCheckout(customer: LiveCustomer, snapshot: StoreSnapshot) {
     const itemCount = customer.cart.reduce((sum, line) => sum + line.quantity, 0)
     const label = customer.cart.length === 1 ? (PRODUCT_MAP[customer.cart[0].productId]?.name ?? 'item') : `${itemCount} items`
     useCustomers.getState().recordSaleEvent(`Sale: $${revenue.toFixed(2)} (${label})`)
+    spawnSalePop(new THREE.Vector3(customer.position.x, customer.position.y + 1.6, customer.position.z), revenue)
   }
 
   sendHome(customer, snapshot)

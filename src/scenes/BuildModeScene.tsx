@@ -8,6 +8,7 @@ import { Ground } from '../components/3d/Ground'
 import { LayoutRenderer } from '../components/3d/LayoutRenderer'
 import { Ghost } from '../components/3d/Ghost'
 import { LODTestProps } from '../components/3d/LODTestProps'
+import { SalePopsLayer } from '../components/3d/SalePopsLayer'
 import { SkyGradient } from '../components/3d/SkyGradient'
 import { StaffLayer } from '../components/3d/StaffLayer'
 import { StoreLighting } from '../components/3d/StoreLighting'
@@ -105,6 +106,7 @@ export function BuildModeScene() {
       <Ghost target={target} fixtureCategory={tool === 'shelf' || tool === 'checkout' ? tool : undefined} rotation={rotation} />
       <CustomersLayer />
       <StaffLayer />
+      <SalePopsLayer />
       <LODTestProps />
       <DustMotes areaSize={[GRID_WIDTH, 3.5, GRID_DEPTH]} center={[GRID_WIDTH / 2, 2, GRID_DEPTH / 2]} />
     </>

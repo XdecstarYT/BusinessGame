@@ -1,4 +1,5 @@
-import { PRODUCTS, SHELF_CAPACITY, STOCKROOM_CAPACITY } from '../../data/products'
+import { useMemo, useState } from 'react'
+import { PRODUCTS, PRODUCT_CATEGORIES, SHELF_CAPACITY, STOCKROOM_CAPACITY } from '../../data/products'
 import { useFinance } from '../../stores/useFinance'
 import { useInventory } from '../../stores/useInventory'
 import { useStoreLayout } from '../../stores/useStoreLayout'
@@ -22,6 +23,14 @@ export function InventoryPanel({ onClose }: InventoryPanelProps) {
 
   const shelves = Object.values(useStoreLayout((s) => s.fixtures)).filter((f) => f.category === 'shelf')
 
+  const [category, setCategory] = useState<string>('All')
+  const [search, setSearch] = useState('')
+
+  const filteredProducts = useMemo(() => {
+    const query = search.trim().toLowerCase()
+    return PRODUCTS.filter((p) => (category === 'All' || p.category === category) && (!query || p.name.toLowerCase().includes(query)))
+  }, [category, search])
+
   return (
     <div className="pointer-events-auto absolute top-20 right-4 w-80 max-h-[28rem] overflow-y-auto bg-black/80 backdrop-blur-sm rounded-xl shadow-lg text-white">
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 sticky top-0 bg-black/90 backdrop-blur-sm rounded-t-xl">
@@ -35,7 +44,31 @@ export function InventoryPanel({ onClose }: InventoryPanelProps) {
         <div className="text-[11px] text-white/50 mb-2">
           Stockroom: {totalStockroomUnits} / {STOCKROOM_CAPACITY} units
         </div>
-        {PRODUCTS.map((product) => {
+        <div className="flex gap-1.5 mb-2">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="bg-white/10 border border-white/10 rounded text-[11px] px-1.5 py-1 text-white flex-1"
+          >
+            <option value="All" className="text-black">
+              All categories
+            </option>
+            {PRODUCT_CATEGORIES.map((c) => (
+              <option key={c} value={c} className="text-black">
+                {c}
+              </option>
+            ))}
+          </select>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search…"
+            className="bg-white/10 border border-white/10 rounded text-[11px] px-2 py-1 text-white w-24 placeholder:text-white/30"
+          />
+        </div>
+
+        {filteredProducts.length === 0 && <div className="text-xs text-white/40 italic">No products match.</div>}
+        {filteredProducts.map((product) => {
           const qty = stockroom[product.id] ?? 0
           return (
             <div key={product.id} className={rowBase}>
@@ -85,10 +118,14 @@ export function InventoryPanel({ onClose }: InventoryPanelProps) {
                   <option value="" disabled>
                     Assign…
                   </option>
-                  {PRODUCTS.map((p) => (
-                    <option key={p.id} value={p.id} className="text-black">
-                      {p.name}
-                    </option>
+                  {PRODUCT_CATEGORIES.map((cat) => (
+                    <optgroup key={cat} label={cat} className="text-black">
+                      {PRODUCTS.filter((p) => p.category === cat).map((p) => (
+                        <option key={p.id} value={p.id} className="text-black">
+                          {p.name}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
                 <button

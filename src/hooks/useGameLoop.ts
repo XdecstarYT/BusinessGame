@@ -2,6 +2,7 @@ import { useFrame } from '@react-three/fiber'
 import { useGameClock } from '../stores/useGameClock'
 import { tickCustomers } from '../systems/customerSimulation'
 import { tickStaff } from '../systems/staffSimulation'
+import { tickSalePops } from '../systems/salePops'
 
 // Guards against a real freeze (tab backgrounded, GC pause) causing a huge
 // time jump, without silently slowing the game down on modest hardware —
@@ -19,5 +20,6 @@ export function useGameLoop() {
     useGameClock.getState().advance(clamped)
     tickStaff(clamped)
     tickCustomers(clamped)
+    tickSalePops(clamped)
   })
 }
