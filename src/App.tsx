@@ -6,7 +6,8 @@ import { HUD } from './components/ui/HUD'
 import { SimulationDriver } from './components/3d/SimulationDriver'
 import { BuildModeScene } from './scenes/BuildModeScene'
 import { WalkModeScene } from './scenes/WalkModeScene'
-import { useGameMode } from './stores/useGameMode'
+import { CityMapScene } from './scenes/CityMapScene'
+import { useGameMode, type GameMode } from './stores/useGameMode'
 import { GRID_WIDTH, GRID_DEPTH } from './systems/grid'
 
 const BUILD_CAMERA_POSITION: [number, number, number] = [
@@ -15,15 +16,20 @@ const BUILD_CAMERA_POSITION: [number, number, number] = [
   GRID_DEPTH / 2 + 14,
 ]
 
-/** Resets the shared camera to a sensible build-mode orbit position whenever we
- * switch back from Walk Mode (which drives the camera manually every frame). */
-function CameraModeRig({ mode }: { mode: 'build' | 'walk' }) {
+const CITY_CAMERA_POSITION: [number, number, number] = [40, 46, 40]
+
+/** Resets the shared camera to a sensible orbit position whenever we switch
+ * into Build or City mode (Walk Mode drives the camera manually every frame). */
+function CameraModeRig({ mode }: { mode: GameMode }) {
   const { camera } = useThree()
 
   useEffect(() => {
     if (mode === 'build') {
       camera.position.set(...BUILD_CAMERA_POSITION)
       camera.lookAt(GRID_WIDTH / 2, 0, GRID_DEPTH / 2)
+    } else if (mode === 'city') {
+      camera.position.set(...CITY_CAMERA_POSITION)
+      camera.lookAt(0, 0, 0)
     }
   }, [mode, camera])
 
@@ -92,7 +98,9 @@ export default function App() {
           <ConfigureRenderer />
           <CameraModeRig mode={mode} />
           <SimulationDriver />
-          {mode === 'build' ? <BuildModeScene /> : <WalkModeScene />}
+          {mode === 'build' && <BuildModeScene />}
+          {mode === 'walk' && <WalkModeScene />}
+          {mode === 'city' && <CityMapScene />}
         </Suspense>
       </Canvas>
       <HUD />

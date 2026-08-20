@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type GameMode = 'build' | 'walk'
+export type GameMode = 'build' | 'walk' | 'city'
 
 interface GameModeState {
   mode: GameMode

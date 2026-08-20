@@ -10,6 +10,7 @@ import { InventoryPanel } from './InventoryPanel'
 import { FinancePanel } from './FinancePanel'
 import { StaffPanel } from './StaffPanel'
 import { MarketingPanel } from './MarketingPanel'
+import { CityMapPanel } from './CityMapPanel'
 
 type Panel = 'inventory' | 'finance' | 'staff' | 'marketing' | null
 
@@ -49,6 +50,14 @@ export function HUD() {
         >
           🚶 Walk
         </button>
+        <button
+          onClick={() => setMode('city')}
+          className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+            mode === 'city' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+          }`}
+        >
+          🗺️ City
+        </button>
       </div>
 
       <div className="pointer-events-auto absolute top-4 right-4 flex flex-col items-end gap-2">
@@ -68,6 +77,7 @@ export function HUD() {
           </span>
         </div>
 
+        {mode !== 'city' && (
         <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-lg">
           <button
             onClick={() => togglePanel('inventory')}
@@ -102,6 +112,7 @@ export function HUD() {
             💰 Finance
           </button>
         </div>
+        )}
       </div>
 
       {events.length > 0 && (
@@ -114,10 +125,11 @@ export function HUD() {
         </div>
       )}
 
-      {panel === 'inventory' && <InventoryPanel onClose={() => setPanel(null)} />}
-      {panel === 'staff' && <StaffPanel onClose={() => setPanel(null)} />}
-      {panel === 'marketing' && <MarketingPanel onClose={() => setPanel(null)} />}
-      {panel === 'finance' && <FinancePanel onClose={() => setPanel(null)} />}
+      {mode !== 'city' && panel === 'inventory' && <InventoryPanel onClose={() => setPanel(null)} />}
+      {mode !== 'city' && panel === 'staff' && <StaffPanel onClose={() => setPanel(null)} />}
+      {mode !== 'city' && panel === 'marketing' && <MarketingPanel onClose={() => setPanel(null)} />}
+      {mode !== 'city' && panel === 'finance' && <FinancePanel onClose={() => setPanel(null)} />}
+      {mode === 'city' && <CityMapPanel onClose={() => setMode('build')} />}
 
       {mode === 'walk' && (
         <div className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-xs bg-black/60 rounded-full px-3 py-1">
