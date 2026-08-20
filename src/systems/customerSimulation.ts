@@ -13,6 +13,8 @@ import { useCustomers } from '../stores/useCustomers'
 import { useStoreAtmosphere } from '../stores/useStoreAtmosphere'
 import { useReputation } from '../stores/useReputation'
 import { useMarketing } from '../stores/useMarketing'
+import { useCorporateFinance } from '../stores/useCorporateFinance'
+import { INSURANCE_REIMBURSEMENT_RATE } from '../data/finance'
 import { PRODUCT_MAP } from '../data/products'
 import type { WallSegment } from './pathfinding'
 import type { Cell } from './grid'
@@ -158,8 +160,12 @@ function onShelfArrival(customer: LiveCustomer, snapshot: StoreSnapshot) {
           useCustomers.getState().recordSaleEvent('🚨 Security caught a shoplifter!')
         } else if (inventory.sellFromShelf(fixtureId, 1)) {
           const product = PRODUCT_MAP[shelf.productId]
-          useFinance.getState().recordShrinkage(product.costPrice)
-          useCustomers.getState().recordSaleEvent(`⚠️ Shoplifting loss: $${product.costPrice.toFixed(2)}`)
+          const insured = useCorporateFinance.getState().insuranceActive
+          const netLoss = insured ? product.costPrice * (1 - INSURANCE_REIMBURSEMENT_RATE) : product.costPrice
+          useFinance.getState().recordShrinkage(netLoss)
+          useCustomers.getState().recordSaleEvent(
+            insured ? `⚠️ Shoplifting loss: $${netLoss.toFixed(2)} (insured)` : `⚠️ Shoplifting loss: $${netLoss.toFixed(2)}`,
+          )
         }
       } else if (inventory.sellFromShelf(fixtureId, 1)) {
         const existing = customer.cart.find((line) => line.productId === shelf.productId)

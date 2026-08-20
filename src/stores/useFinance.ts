@@ -14,6 +14,9 @@ interface FinanceState {
   history: DaySummary[]
 
   spend: (amount: number) => boolean
+  /** Financing cash in (loan principal, investor rounds, IPO proceeds) —
+   * deliberately kept out of dailyRevenue since it's not operating income. */
+  addCash: (amount: number) => void
   recordSale: (revenue: number, cogs: number) => void
   recordShrinkage: (cost: number) => void
   recordMarketingSpend: (amount: number) => void
@@ -33,6 +36,11 @@ export const useFinance = create<FinanceState>((set, get) => ({
     if (amount <= 0 || state.cash < amount) return false
     set({ cash: state.cash - amount })
     return true
+  },
+
+  addCash: (amount) => {
+    if (amount <= 0) return
+    set((state) => ({ cash: state.cash + amount }))
   },
 
   recordSale: (revenue, cogs) => {
@@ -66,7 +74,7 @@ export const useFinance = create<FinanceState>((set, get) => ({
       marketing: state.dailyMarketing,
     })
     set({
-      cash: state.cash - DAILY_RENT - payroll,
+      cash: state.cash - DAILY_RENT - payroll - summary.taxes,
       dailyRevenue: 0,
       dailyCogs: 0,
       dailyShrinkage: 0,

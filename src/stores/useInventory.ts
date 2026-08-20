@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { PRODUCT_MAP, SHELF_CAPACITY, STOCKROOM_CAPACITY } from '../data/products'
+import { PRODUCT_MAP, SHELF_CAPACITY } from '../data/products'
+import { WAREHOUSE_TIERS, capacityForTier } from '../data/warehouse'
 import { useFinance } from './useFinance'
 
 export interface ShelfStock {
@@ -20,8 +21,14 @@ interface InventoryState {
   shelfStock: Record<string, ShelfStock>
   priceOverrides: Record<string, number>
   promotions: Record<string, Promotion>
+  warehouseTier: number
 
   totalStockroomUnits: () => number
+  stockroomCapacity: () => number
+  upgradeWarehouse: () => boolean
+  /** Adds units delivered by a supplier order (systems/useSupplyChain), capped
+   * to remaining room — returns the quantity actually received. */
+  receiveDelivery: (productId: string, quantity: number) => number
   orderProduct: (productId: string, quantity: number) => boolean
   assignProduct: (fixtureId: string, productId: string) => void
   restockShelf: (fixtureId: string, quantity: number) => void
@@ -39,14 +46,38 @@ export const useInventory = create<InventoryState>((set, get) => ({
   shelfStock: {},
   priceOverrides: {},
   promotions: {},
+  warehouseTier: 0,
 
   totalStockroomUnits: () => Object.values(get().stockroom).reduce((sum, qty) => sum + qty, 0),
+
+  stockroomCapacity: () => capacityForTier(get().warehouseTier),
+
+  upgradeWarehouse: () => {
+    const state = get()
+    const nextTier = state.warehouseTier + 1
+    const def = WAREHOUSE_TIERS[nextTier]
+    if (!def) return false
+    if (!useFinance.getState().spend(def.upgradeCost)) return false
+    set({ warehouseTier: nextTier })
+    return true
+  },
+
+  receiveDelivery: (productId, quantity) => {
+    if (quantity <= 0) return 0
+    const state = get()
+    const room = state.stockroomCapacity() - state.totalStockroomUnits()
+    const received = Math.max(0, Math.min(quantity, room))
+    if (received > 0) {
+      set({ stockroom: { ...state.stockroom, [productId]: (state.stockroom[productId] ?? 0) + received } })
+    }
+    return received
+  },
 
   orderProduct: (productId, quantity) => {
     const product = PRODUCT_MAP[productId]
     if (!product || quantity <= 0) return false
     const state = get()
-    const allowedQty = Math.min(quantity, STOCKROOM_CAPACITY - state.totalStockroomUnits())
+    const allowedQty = Math.min(quantity, state.stockroomCapacity() - state.totalStockroomUnits())
     if (allowedQty <= 0) return false
     const cost = product.costPrice * allowedQty
     if (!useFinance.getState().spend(cost)) return false

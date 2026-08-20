@@ -7,6 +7,8 @@ import { useReputation } from './useReputation'
 import { useMarketing } from './useMarketing'
 import { useStoreLayout } from './useStoreLayout'
 import { useInventory } from './useInventory'
+import { useSupplyChain } from './useSupplyChain'
+import { useCorporateFinance } from './useCorporateFinance'
 import type { StaffRole } from '../data/staffDefinitions'
 
 export const DAY_LENGTH_SECONDS = 120
@@ -45,6 +47,8 @@ export const useGameClock = create<GameClockState>((set, get) => ({
       useMarketing.getState().tickDaily()
       useCustomers.getState().resetDaily()
       day += 1
+      useSupplyChain.getState().tickDailyDeliveries(day)
+      useCorporateFinance.getState().tickDaily(day)
     }
 
     set({ day, dayProgress: progress })

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { PRODUCTS, PRODUCT_CATEGORIES, PRODUCT_MAP, SHELF_CAPACITY, STOCKROOM_CAPACITY } from '../../data/products'
+import { PRODUCTS, PRODUCT_CATEGORIES, PRODUCT_MAP, SHELF_CAPACITY } from '../../data/products'
 import { useFinance } from '../../stores/useFinance'
 import { useInventory, getEffectivePrice } from '../../stores/useInventory'
 import { useGameClock } from '../../stores/useGameClock'
@@ -23,6 +23,7 @@ export function InventoryPanel({ onClose }: InventoryPanelProps) {
   const priceOverrides = useInventory((s) => s.priceOverrides)
   const promotions = useInventory((s) => s.promotions)
   const totalStockroomUnits = useInventory((s) => s.totalStockroomUnits())
+  const stockroomCapacity = useInventory((s) => s.stockroomCapacity())
   const orderProduct = useInventory((s) => s.orderProduct)
   const assignProduct = useInventory((s) => s.assignProduct)
   const restockShelf = useInventory((s) => s.restockShelf)
@@ -43,7 +44,7 @@ export function InventoryPanel({ onClose }: InventoryPanelProps) {
   }, [category, search])
 
   return (
-    <div className="pointer-events-auto absolute top-20 right-4 w-80 max-h-[28rem] overflow-y-auto bg-black/80 backdrop-blur-sm rounded-xl shadow-lg text-white">
+    <div className="pointer-events-auto absolute top-36 right-4 w-80 max-h-[28rem] overflow-y-auto bg-black/80 backdrop-blur-sm rounded-xl shadow-lg text-white">
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 sticky top-0 bg-black/90 backdrop-blur-sm rounded-t-xl">
         <span className="font-semibold text-sm">📦 Inventory</span>
         <button onClick={onClose} className="text-white/60 hover:text-white text-sm">
@@ -53,7 +54,7 @@ export function InventoryPanel({ onClose }: InventoryPanelProps) {
 
       <div className="px-4 py-3">
         <div className="text-[11px] text-white/50 mb-2">
-          Stockroom: {totalStockroomUnits} / {STOCKROOM_CAPACITY} units
+          Stockroom: {totalStockroomUnits} / {stockroomCapacity} units
         </div>
         <div className="flex gap-1.5 mb-2">
           <select

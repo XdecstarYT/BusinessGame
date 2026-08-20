@@ -10,6 +10,7 @@ interface ReputationState {
   boostFromSale: () => void
   hitFromStockout: () => void
   hitFromLongQueue: () => void
+  hitFromShareholderPressure: () => void
   decayDaily: () => void
   /** 0..1 factor combined with atmosphere to drive how often customers show up. */
   attractivenessFactor: () => number
@@ -25,6 +26,9 @@ export const useReputation = create<ReputationState>((set, get) => ({
   boostFromSale: () => set((s) => ({ score: clamp(s.score + 0.15) })),
   hitFromStockout: () => set((s) => ({ score: clamp(s.score - 1.5) })),
   hitFromLongQueue: () => set((s) => ({ score: clamp(s.score - 0.8) })),
+  /** A losing quarter once public draws public scrutiny — light-touch by
+   * design, per the spec's no-hard-fail-state philosophy. */
+  hitFromShareholderPressure: () => set((s) => ({ score: clamp(s.score - 2) })),
 
   decayDaily: () => set((s) => ({ score: clamp(s.score + (BASELINE - s.score) * DAILY_PULL_TO_BASELINE) })),
 

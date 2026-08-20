@@ -28,7 +28,7 @@ export function StaffPanel({ onClose }: StaffPanelProps) {
   const members = Object.values(roster)
 
   return (
-    <div className="pointer-events-auto absolute top-20 right-4 w-80 max-h-[28rem] overflow-y-auto bg-black/80 backdrop-blur-sm rounded-xl shadow-lg text-white">
+    <div className="pointer-events-auto absolute top-36 right-4 w-80 max-h-[28rem] overflow-y-auto bg-black/80 backdrop-blur-sm rounded-xl shadow-lg text-white">
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 sticky top-0 bg-black/90 backdrop-blur-sm rounded-t-xl">
         <span className="font-semibold text-sm">👥 Staff & Atmosphere</span>
         <button onClick={onClose} className="text-white/60 hover:text-white text-sm">

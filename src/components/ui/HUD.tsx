@@ -12,8 +12,10 @@ import { FinancePanel } from './FinancePanel'
 import { StaffPanel } from './StaffPanel'
 import { MarketingPanel } from './MarketingPanel'
 import { CityMapPanel } from './CityMapPanel'
+import { SupplyChainPanel } from './SupplyChainPanel'
+import { CorporateFinancePanel } from './CorporateFinancePanel'
 
-type Panel = 'inventory' | 'finance' | 'staff' | 'marketing' | null
+type Panel = 'inventory' | 'finance' | 'staff' | 'marketing' | 'supply' | 'corporate' | null
 
 export function HUD() {
   const mode = useGameMode((s) => s.mode)
@@ -80,7 +82,7 @@ export function HUD() {
         </div>
 
         {mode !== 'city' && (
-        <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-lg">
+        <div className="flex items-center gap-2 flex-wrap justify-end max-w-md bg-black/70 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-lg">
           <button
             onClick={() => togglePanel('inventory')}
             className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
@@ -104,6 +106,22 @@ export function HUD() {
             }`}
           >
             📣 Marketing
+          </button>
+          <button
+            onClick={() => togglePanel('supply')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+              panel === 'supply' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
+          >
+            🚚 Supply
+          </button>
+          <button
+            onClick={() => togglePanel('corporate')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+              panel === 'corporate' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
+          >
+            🏦 Corporate
           </button>
           <button
             onClick={() => togglePanel('finance')}
@@ -130,6 +148,8 @@ export function HUD() {
       {mode !== 'city' && panel === 'inventory' && <InventoryPanel onClose={() => setPanel(null)} />}
       {mode !== 'city' && panel === 'staff' && <StaffPanel onClose={() => setPanel(null)} />}
       {mode !== 'city' && panel === 'marketing' && <MarketingPanel onClose={() => setPanel(null)} />}
+      {mode !== 'city' && panel === 'supply' && <SupplyChainPanel onClose={() => setPanel(null)} />}
+      {mode !== 'city' && panel === 'corporate' && <CorporateFinancePanel onClose={() => setPanel(null)} />}
       {mode !== 'city' && panel === 'finance' && <FinancePanel onClose={() => setPanel(null)} />}
       {mode === 'city' && <CityMapPanel onClose={() => setMode('build')} />}
 
