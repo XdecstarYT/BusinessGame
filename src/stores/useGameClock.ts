@@ -9,6 +9,8 @@ import { useStoreLayout } from './useStoreLayout'
 import { useInventory } from './useInventory'
 import { useSupplyChain } from './useSupplyChain'
 import { useCorporateFinance } from './useCorporateFinance'
+import { useCorporateHQ } from './useCorporateHQ'
+import { useCompetitors } from './useCompetitors'
 import type { StaffRole } from '../data/staffDefinitions'
 
 export const DAY_LENGTH_SECONDS = 120
@@ -38,6 +40,7 @@ export const useGameClock = create<GameClockState>((set, get) => ({
         cashier: Object.values(layout.fixtures).filter((f) => f.category === 'checkout').length,
         janitor: Object.keys(layout.floors).length,
         security: Object.keys(layout.floors).length,
+        manager: Object.keys(layout.fixtures).length,
       }
 
       useFinance.getState().endDay(day, useStaff.getState().totalDailyPayroll())
@@ -48,7 +51,10 @@ export const useGameClock = create<GameClockState>((set, get) => ({
       useCustomers.getState().resetDaily()
       day += 1
       useSupplyChain.getState().tickDailyDeliveries(day)
+      useSupplyChain.getState().tickManagerAutoReorder(day)
       useCorporateFinance.getState().tickDaily(day)
+      useCorporateHQ.getState().tickDaily()
+      useCompetitors.getState().tickDaily()
     }
 
     set({ day, dayProgress: progress })

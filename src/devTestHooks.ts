@@ -14,6 +14,8 @@ import { useMarketing } from './stores/useMarketing'
 import { useCityMap } from './stores/useCityMap'
 import { useSupplyChain } from './stores/useSupplyChain'
 import { useCorporateFinance } from './stores/useCorporateFinance'
+import { useCorporateHQ } from './stores/useCorporateHQ'
+import { useCompetitors } from './stores/useCompetitors'
 import { getLiveCustomers } from './systems/customerSimulation'
 import { getLiveStaff } from './systems/staffSimulation'
 import { PRODUCTS } from './data/products'
@@ -33,6 +35,8 @@ declare global {
       useCityMap: typeof useCityMap
       useSupplyChain: typeof useSupplyChain
       useCorporateFinance: typeof useCorporateFinance
+      useCorporateHQ: typeof useCorporateHQ
+      useCompetitors: typeof useCompetitors
       getLiveCustomers: typeof getLiveCustomers
       getLiveStaff: typeof getLiveStaff
       PRODUCTS: typeof PRODUCTS
@@ -53,6 +57,8 @@ window.__retailEmpireDebug = {
   useCityMap,
   useSupplyChain,
   useCorporateFinance,
+  useCorporateHQ,
+  useCompetitors,
   getLiveCustomers,
   getLiveStaff,
   PRODUCTS,

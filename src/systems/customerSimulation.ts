@@ -15,6 +15,7 @@ import { useReputation } from '../stores/useReputation'
 import { useMarketing } from '../stores/useMarketing'
 import { useCorporateFinance } from '../stores/useCorporateFinance'
 import { INSURANCE_REIMBURSEMENT_RATE } from '../data/finance'
+import { useCompetitors } from '../stores/useCompetitors'
 import { PRODUCT_MAP } from '../data/products'
 import type { WallSegment } from './pathfinding'
 import type { Cell } from './grid'
@@ -299,5 +300,6 @@ function attractivenessSpawnFactor(): number {
   const atmosphere = useStoreAtmosphere.getState().atmosphereScore()
   const reputation = useReputation.getState().attractivenessFactor()
   const marketingBoost = useMarketing.getState().attractivenessBoost()
-  return 0.6 + (atmosphere * 0.5 + reputation * 0.5) * 0.7 + marketingBoost
+  const competitorDrag = useCompetitors.getState().competitorPressure()
+  return Math.max(0.15, 0.6 + (atmosphere * 0.5 + reputation * 0.5) * 0.7 + marketingBoost - competitorDrag)
 }

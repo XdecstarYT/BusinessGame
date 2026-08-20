@@ -14,8 +14,9 @@ import { MarketingPanel } from './MarketingPanel'
 import { CityMapPanel } from './CityMapPanel'
 import { SupplyChainPanel } from './SupplyChainPanel'
 import { CorporateFinancePanel } from './CorporateFinancePanel'
+import { HQPanel } from './HQPanel'
 
-type Panel = 'inventory' | 'finance' | 'staff' | 'marketing' | 'supply' | 'corporate' | null
+type Panel = 'inventory' | 'finance' | 'staff' | 'marketing' | 'supply' | 'corporate' | 'hq' | null
 
 export function HUD() {
   const mode = useGameMode((s) => s.mode)
@@ -124,6 +125,14 @@ export function HUD() {
             🏦 Corporate
           </button>
           <button
+            onClick={() => togglePanel('hq')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+              panel === 'hq' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
+          >
+            🏢 HQ
+          </button>
+          <button
             onClick={() => togglePanel('finance')}
             className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
               panel === 'finance' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
@@ -150,6 +159,7 @@ export function HUD() {
       {mode !== 'city' && panel === 'marketing' && <MarketingPanel onClose={() => setPanel(null)} />}
       {mode !== 'city' && panel === 'supply' && <SupplyChainPanel onClose={() => setPanel(null)} />}
       {mode !== 'city' && panel === 'corporate' && <CorporateFinancePanel onClose={() => setPanel(null)} />}
+      {mode !== 'city' && panel === 'hq' && <HQPanel onClose={() => setPanel(null)} />}
       {mode !== 'city' && panel === 'finance' && <FinancePanel onClose={() => setPanel(null)} />}
       {mode === 'city' && <CityMapPanel onClose={() => setMode('build')} />}
 

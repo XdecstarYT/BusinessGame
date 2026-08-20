@@ -69,6 +69,14 @@ export function isSecurityOnDuty(): boolean {
   return Object.values(useStaff.getState().roster).some((m) => m.role === 'security' && isOnDuty(m.shift, hour))
 }
 
+/** Whether any manager is currently on duty — consumed by useSupplyChain's
+ * auto-reorder tick. Managers work the back office (no floor presence), so
+ * "on duty" here still respects their shift window like every other role. */
+export function hasManagerOnDuty(): boolean {
+  const hour = currentGameHour()
+  return Object.values(useStaff.getState().roster).some((m) => m.role === 'manager' && isOnDuty(m.shift, hour))
+}
+
 function randomCooldown(): number {
   return IDLE_COOLDOWN_MIN + Math.random() * (IDLE_COOLDOWN_MAX - IDLE_COOLDOWN_MIN)
 }
@@ -84,6 +92,9 @@ function syncRoster(roster: Record<string, StaffMember>, depot: Cell | null) {
     if (!(id in roster)) staffNPCs.delete(id)
   }
   for (const member of Object.values(roster)) {
+    // Managers work the back office — no physical NPC, so their StaffLayer
+    // group just stays at its default invisible state.
+    if (member.role === 'manager') continue
     if (staffNPCs.has(member.id)) continue
     staffNPCs.set(member.id, {
       id: member.id,

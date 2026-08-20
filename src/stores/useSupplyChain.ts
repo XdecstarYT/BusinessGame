@@ -2,8 +2,12 @@ import { create } from 'zustand'
 import { PRODUCT_MAP } from '../data/products'
 import { SUPPLIER_MAP } from '../data/suppliers'
 import { contractUnitPrice, leadTimeArrivalDay, rollDisruption } from '../systems/supplyChainSim'
+import { hasManagerOnDuty } from '../systems/staffSimulation'
 import { useFinance } from './useFinance'
 import { useInventory } from './useInventory'
+
+const AUTO_REORDER_THRESHOLD = 40
+const AUTO_REORDER_QUANTITY = 100
 
 export interface PendingOrder {
   id: string
@@ -24,6 +28,10 @@ interface SupplyChainState {
   cancelContract: (productId: string) => void
   placeContractOrder: (productId: string, quantity: number, currentDay: number) => boolean
   tickDailyDeliveries: (currentDay: number) => void
+  /** A manager on duty auto-reorders any signed-contract product whose
+   * stockroom + in-transit total is running low, so the player doesn't
+   * have to babysit restocking manually. */
+  tickManagerAutoReorder: (currentDay: number) => void
 }
 
 let nextOrderNumber = 1
@@ -102,5 +110,25 @@ export const useSupplyChain = create<SupplyChainState>((set, get) => ({
     }
 
     set({ pendingOrders: remaining, events: [...newEvents, ...state.events].slice(0, 8) })
+  },
+
+  tickManagerAutoReorder: (currentDay) => {
+    if (!hasManagerOnDuty()) return
+    const state = get()
+    const inventory = useInventory.getState()
+
+    for (const productId of Object.keys(state.contracts)) {
+      const stockroomQty = inventory.stockroom[productId] ?? 0
+      const pendingQty = get()
+        .pendingOrders.filter((o) => o.productId === productId)
+        .reduce((sum, o) => sum + o.quantity, 0)
+      if (stockroomQty + pendingQty < AUTO_REORDER_THRESHOLD) {
+        const placed = get().placeContractOrder(productId, AUTO_REORDER_QUANTITY, currentDay)
+        if (placed) {
+          const product = PRODUCT_MAP[productId]
+          set((s) => ({ events: [`🧑‍💼 Manager auto-ordered ${AUTO_REORDER_QUANTITY} ${product.name}`, ...s.events].slice(0, 8) }))
+        }
+      }
+    }
   },
 }))

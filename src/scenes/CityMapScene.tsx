@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Html, OrbitControls, RoundedBox } from '@react-three/drei'
 import { NEIGHBORHOODS } from '../data/neighborhoods'
 import { useCityMap } from '../stores/useCityMap'
+import { useCompetitors } from '../stores/useCompetitors'
+import { COMPETITOR_CHAIN_MAP } from '../data/competitors'
 import { SkyGradient } from '../components/3d/SkyGradient'
 import { StoreLighting } from '../components/3d/StoreLighting'
 
@@ -12,9 +14,11 @@ function PlotBlock({ id, position, color }: { id: string; position: [number, num
   const owned = useCityMap((s) => s.isOwned(id))
   const selected = useCityMap((s) => s.selectedPlotId === id)
   const selectPlot = useCityMap((s) => s.selectPlot)
+  const presence = useCompetitors((s) => s.presences[id])
   const [hovered, setHovered] = useState(false)
 
   const plot = NEIGHBORHOODS.find((p) => p.id === id)!
+  const chain = presence ? COMPETITOR_CHAIN_MAP[presence.chainId] : undefined
   const height = owned ? PLOT_HEIGHT * 1.6 : PLOT_HEIGHT
   const displayColor = owned ? '#22c55e' : color
 
@@ -40,11 +44,18 @@ function PlotBlock({ id, position, color }: { id: string; position: [number, num
         <meshStandardMaterial color={displayColor} roughness={0.7} emissive={selected ? '#fbbf24' : '#000000'} emissiveIntensity={selected ? 0.35 : 0} />
       </RoundedBox>
 
+      {!owned && chain && (
+        <mesh position={[PLOT_SIZE / 2 - 1.2, height + 0.9, PLOT_SIZE / 2 - 1.2]} castShadow>
+          <coneGeometry args={[0.5, 1.8, 4]} />
+          <meshStandardMaterial color={chain.color} roughness={0.5} />
+        </mesh>
+      )}
+
       {(hovered || selected) && (
         <Html position={[0, height + 1.4, 0]} center distanceFactor={22} style={{ pointerEvents: 'none' }}>
           <div className="whitespace-nowrap text-xs font-semibold text-white bg-black/70 rounded-full px-3 py-1 shadow">
             {plot.name}
-            {owned ? ' · Owned' : ''}
+            {owned ? ' · Owned' : chain ? ` · ${chain.name}` : ''}
           </div>
         </Html>
       )}
@@ -54,9 +65,11 @@ function PlotBlock({ id, position, color }: { id: string; position: [number, num
 
 /**
  * Low-fidelity "toy town" map — coarse colored blocks, not modeled
- * buildings. Selecting/acquiring a plot is browsing + unlocking a second
- * location, not operating a live parallel store; that's the Phase 7
- * Corporate/Multi-Store layer.
+ * buildings. Acquired plots run under useCorporateHQ's abstracted
+ * formula-based daily P&L (foot traffic x manager quality x brand
+ * strength) rather than full 3D/NPC simulation — a deliberate fidelity
+ * tier, same idea as this map itself being flat-shaded background scenery.
+ * Competitor-flagged plots cost a premium to acquire (buying the rival out).
  */
 export function CityMapScene() {
   return (

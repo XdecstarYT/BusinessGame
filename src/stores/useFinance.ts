@@ -17,6 +17,11 @@ interface FinanceState {
   /** Financing cash in (loan principal, investor rounds, IPO proceeds) —
    * deliberately kept out of dailyRevenue since it's not operating income. */
   addCash: (amount: number) => void
+  /** Unconditional net cash adjustment (positive or negative, can take cash
+   * negative like rent/payroll already do) for a discrete revenue stream
+   * tracked entirely outside the home store's own dailyRevenue/dailyCogs —
+   * abstracted chain-location P&L, franchise royalties. */
+  applyOperatingResult: (amount: number) => void
   recordSale: (revenue: number, cogs: number) => void
   recordShrinkage: (cost: number) => void
   recordMarketingSpend: (amount: number) => void
@@ -40,6 +45,11 @@ export const useFinance = create<FinanceState>((set, get) => ({
 
   addCash: (amount) => {
     if (amount <= 0) return
+    set((state) => ({ cash: state.cash + amount }))
+  },
+
+  applyOperatingResult: (amount) => {
+    if (amount === 0) return
     set((state) => ({ cash: state.cash + amount }))
   },
 

@@ -1,7 +1,4 @@
-// Manager is still deliberately not offered — its real mechanic (auto-run
-// stores) doesn't exist until Phase 7. Security is added now that theft
-// exists (Phase 4) to give it something real to do.
-export type StaffRole = 'stocker' | 'cashier' | 'janitor' | 'security'
+export type StaffRole = 'stocker' | 'cashier' | 'janitor' | 'security' | 'manager'
 export type Shift = 'morning' | 'evening' | 'allday'
 
 export interface StaffRoleDefinition {
@@ -40,6 +37,13 @@ export const STAFF_ROLES: Record<StaffRole, StaffRoleDefinition> = {
     marketRate: 70,
     color: '#e0423c',
     description: 'On duty, sharply cuts the odds of a shoplifter getting away with it.',
+  },
+  manager: {
+    role: 'manager',
+    label: 'Manager',
+    marketRate: 95,
+    color: '#a855f7',
+    description: 'Works the back office, not the floor — auto-reorders signed supply contracts before you run dry.',
   },
 }
 

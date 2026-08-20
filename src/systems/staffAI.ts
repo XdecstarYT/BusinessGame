@@ -35,7 +35,7 @@ export function moraleTarget(wage: number, marketRate: number): number {
   return clamp(BASE_MORALE_TARGET + ratio * WAGE_SENSITIVITY, 5, 100)
 }
 
-const IDEAL_RATIO: Record<StaffRole, number> = { stocker: 4, cashier: 1, janitor: 30, security: 50 }
+const IDEAL_RATIO: Record<StaffRole, number> = { stocker: 4, cashier: 1, janitor: 30, security: 50, manager: 20 }
 const MAX_WORKLOAD_PENALTY = 25
 
 /** Extra morale-target penalty when a role is stretched thin — e.g. one
