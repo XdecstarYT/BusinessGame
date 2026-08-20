@@ -9,8 +9,12 @@ import { useGameClock } from './stores/useGameClock'
 import { useCustomers } from './stores/useCustomers'
 import { useStaff } from './stores/useStaff'
 import { useStoreAtmosphere } from './stores/useStoreAtmosphere'
+import { useReputation } from './stores/useReputation'
+import { useMarketing } from './stores/useMarketing'
+import { useCityMap } from './stores/useCityMap'
 import { getLiveCustomers } from './systems/customerSimulation'
 import { getLiveStaff } from './systems/staffSimulation'
+import { PRODUCTS } from './data/products'
 
 declare global {
   interface Window {
@@ -22,8 +26,12 @@ declare global {
       useCustomers: typeof useCustomers
       useStaff: typeof useStaff
       useStoreAtmosphere: typeof useStoreAtmosphere
+      useReputation: typeof useReputation
+      useMarketing: typeof useMarketing
+      useCityMap: typeof useCityMap
       getLiveCustomers: typeof getLiveCustomers
       getLiveStaff: typeof getLiveStaff
+      PRODUCTS: typeof PRODUCTS
     }
   }
 }
@@ -36,6 +44,10 @@ window.__retailEmpireDebug = {
   useCustomers,
   useStaff,
   useStoreAtmosphere,
+  useReputation,
+  useMarketing,
+  useCityMap,
   getLiveCustomers,
   getLiveStaff,
+  PRODUCTS,
 }
