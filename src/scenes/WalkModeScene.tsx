@@ -1,4 +1,5 @@
 import { Physics, RigidBody } from '@react-three/rapier'
+import { CustomersLayer } from '../components/3d/CustomersLayer'
 import { DustMotes } from '../components/3d/DustMotes'
 import { Ground } from '../components/3d/Ground'
 import { LayoutRenderer } from '../components/3d/LayoutRenderer'
@@ -20,6 +21,7 @@ export function WalkModeScene() {
         </RigidBody>
         <LayoutRenderer withPhysics />
       </Physics>
+      <CustomersLayer />
       <LODTestProps />
       <DustMotes areaSize={[GRID_WIDTH, 3.5, GRID_DEPTH]} center={[GRID_WIDTH / 2, 2, GRID_DEPTH / 2]} />
     </>

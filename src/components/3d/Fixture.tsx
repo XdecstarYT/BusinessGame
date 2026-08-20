@@ -4,14 +4,17 @@ import type { Mesh, PointLight } from 'three'
 import { cellCenterToWorld } from '../../systems/grid'
 import { FIXTURE_DEFINITIONS, type FixtureCategory } from '../../data/fixtureDefinitions'
 import type { Cell } from '../../systems/grid'
+import { PRODUCT_MAP, SHELF_CAPACITY } from '../../data/products'
+import { useInventory } from '../../stores/useInventory'
 
 interface FixtureProps {
+  id: string
   category: FixtureCategory
   cell: Cell
   rotation: number
 }
 
-export function Fixture({ category, cell, rotation }: FixtureProps) {
+export function Fixture({ id, category, cell, rotation }: FixtureProps) {
   const def = FIXTURE_DEFINITIONS[category]
   const [x, z] = useMemo(() => cellCenterToWorld(cell), [cell])
 
@@ -22,7 +25,35 @@ export function Fixture({ category, cell, rotation }: FixtureProps) {
         <meshStandardMaterial color={def.color} roughness={0.6} metalness={0.1} />
       </mesh>
       {category === 'checkout' && <CheckoutScanner height={def.height} />}
+      {category === 'shelf' && <ShelfStockIndicator fixtureId={id} shelfHeight={def.height} />}
     </group>
+  )
+}
+
+/** Shows what's actually stocked on the shelf — a colored block sized by
+ * fill ratio, or a dark empty plate when nothing's assigned yet. Ties the
+ * inventory system back into the 3D view instead of leaving stock invisible. */
+function ShelfStockIndicator({ fixtureId, shelfHeight }: { fixtureId: string; shelfHeight: number }) {
+  const shelf = useInventory((s) => s.shelfStock[fixtureId])
+  const product = shelf?.productId ? PRODUCT_MAP[shelf.productId] : undefined
+
+  if (!product) {
+    return (
+      <mesh position={[0, shelfHeight + 0.015, 0]}>
+        <boxGeometry args={[0.6, 0.03, 0.6]} />
+        <meshStandardMaterial color="#555b66" roughness={0.9} />
+      </mesh>
+    )
+  }
+
+  const fillRatio = shelf ? shelf.quantity / SHELF_CAPACITY : 0
+  const blockHeight = Math.max(fillRatio, 0.06) * 0.5
+
+  return (
+    <mesh position={[0, shelfHeight + blockHeight / 2, 0]} castShadow>
+      <boxGeometry args={[0.6, blockHeight, 0.6]} />
+      <meshStandardMaterial color={product.color} roughness={0.55} />
+    </mesh>
   )
 }
 

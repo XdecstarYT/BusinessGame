@@ -3,6 +3,7 @@ import { Canvas, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { WebGPURenderer } from 'three/webgpu'
 import { HUD } from './components/ui/HUD'
+import { SimulationDriver } from './components/3d/SimulationDriver'
 import { BuildModeScene } from './scenes/BuildModeScene'
 import { WalkModeScene } from './scenes/WalkModeScene'
 import { useGameMode } from './stores/useGameMode'
@@ -90,6 +91,7 @@ export default function App() {
           <fog attach="fog" args={['#c9d6e3', 40, 140]} />
           <ConfigureRenderer />
           <CameraModeRig mode={mode} />
+          <SimulationDriver />
           {mode === 'build' ? <BuildModeScene /> : <WalkModeScene />}
         </Suspense>
       </Canvas>

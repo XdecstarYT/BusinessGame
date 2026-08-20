@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { OrbitControls } from '@react-three/drei'
 import type { ThreeEvent } from '@react-three/fiber'
+import { CustomersLayer } from '../components/3d/CustomersLayer'
 import { DustMotes } from '../components/3d/DustMotes'
 import { GridFloor } from '../components/3d/GridFloor'
 import { Ground } from '../components/3d/Ground'
@@ -10,6 +11,7 @@ import { LODTestProps } from '../components/3d/LODTestProps'
 import { SkyGradient } from '../components/3d/SkyGradient'
 import { useGridSnap, type SnapTarget } from '../hooks/useGridSnap'
 import { useBuildTool } from '../stores/useBuildTool'
+import { useInventory } from '../stores/useInventory'
 import { useStoreLayout } from '../stores/useStoreLayout'
 import { GRID_WIDTH, GRID_DEPTH, cellKey, edgeKey } from '../systems/grid'
 import type { FixtureCategory } from '../data/fixtureDefinitions'
@@ -20,6 +22,7 @@ export function BuildModeScene() {
 
   const floors = useStoreLayout((s) => s.floors)
   const walls = useStoreLayout((s) => s.walls)
+  const fixtures = useStoreLayout((s) => s.fixtures)
   const placeFloor = useStoreLayout((s) => s.placeFloor)
   const removeFloor = useStoreLayout((s) => s.removeFloor)
   const placeWall = useStoreLayout((s) => s.placeWall)
@@ -28,6 +31,7 @@ export function BuildModeScene() {
   const removeFixtureAt = useStoreLayout((s) => s.removeFixtureAt)
   const hasFloorAt = useStoreLayout((s) => s.hasFloorAt)
   const hasFixtureAt = useStoreLayout((s) => s.hasFixtureAt)
+  const removeInventoryFixture = useInventory((s) => s.removeFixture)
 
   const isValid = useCallback(
     (target: NonNullable<SnapTarget>) => {
@@ -52,11 +56,28 @@ export function BuildModeScene() {
         if (isRemove) removeWall(target.cell, target.orientation)
         else if (target.valid) placeWall(target.cell, target.orientation)
       } else if (target.kind === 'fixture') {
-        if (isRemove) removeFixtureAt(target.cell)
-        else if (target.valid) placeFixture(tool as FixtureCategory, target.cell, rotation)
+        if (isRemove) {
+          const removed = Object.values(fixtures).find((f) => f.cell.x === target.cell.x && f.cell.z === target.cell.z)
+          removeFixtureAt(target.cell)
+          if (removed) removeInventoryFixture(removed.id)
+        } else if (target.valid) {
+          placeFixture(tool as FixtureCategory, target.cell, rotation)
+        }
       }
     },
-    [target, tool, rotation, placeFloor, removeFloor, placeWall, removeWall, placeFixture, removeFixtureAt],
+    [
+      target,
+      tool,
+      rotation,
+      fixtures,
+      placeFloor,
+      removeFloor,
+      placeWall,
+      removeWall,
+      placeFixture,
+      removeFixtureAt,
+      removeInventoryFixture,
+    ],
   )
 
   return (
@@ -75,6 +96,7 @@ export function BuildModeScene() {
       <GridFloor onPointerMove={onPointerMove} onPointerLeave={onPointerLeave} onPointerDown={handlePointerDown} />
       <LayoutRenderer />
       <Ghost target={target} fixtureCategory={tool === 'shelf' || tool === 'checkout' ? tool : undefined} rotation={rotation} />
+      <CustomersLayer />
       <LODTestProps />
       <DustMotes areaSize={[GRID_WIDTH, 3.5, GRID_DEPTH]} center={[GRID_WIDTH / 2, 2, GRID_DEPTH / 2]} />
     </>

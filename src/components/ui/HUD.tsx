@@ -1,9 +1,26 @@
+import { useState } from 'react'
 import { useGameMode } from '../../stores/useGameMode'
+import { useFinance } from '../../stores/useFinance'
+import { useGameClock, formatClock } from '../../stores/useGameClock'
+import { useCustomers } from '../../stores/useCustomers'
 import { BuildToolbar } from './BuildToolbar'
+import { InventoryPanel } from './InventoryPanel'
+import { FinancePanel } from './FinancePanel'
+
+type Panel = 'inventory' | 'finance' | null
 
 export function HUD() {
   const mode = useGameMode((s) => s.mode)
   const setMode = useGameMode((s) => s.setMode)
+
+  const cash = useFinance((s) => s.cash)
+  const day = useGameClock((s) => s.day)
+  const clockLabel = useGameClock((s) => formatClock(s.dayProgress))
+  const activeCustomers = useCustomers((s) => s.activeCount)
+  const events = useCustomers((s) => s.events)
+
+  const [panel, setPanel] = useState<Panel>(null)
+  const togglePanel = (p: Panel) => setPanel((current) => (current === p ? null : p))
 
   return (
     <div className="pointer-events-none absolute inset-0 select-none">
@@ -27,6 +44,46 @@ export function HUD() {
           🚶 Walk
         </button>
       </div>
+
+      <div className="pointer-events-auto absolute top-4 right-4 flex items-center gap-3 bg-black/70 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg text-white text-sm">
+        <span className="font-semibold text-emerald-400">${cash.toFixed(2)}</span>
+        <div className="w-px h-5 bg-white/20" />
+        <span className="text-white/70">
+          Day {day} · {clockLabel}
+        </span>
+        <div className="w-px h-5 bg-white/20" />
+        <span className="text-white/70">🧍 {activeCustomers}</span>
+        <div className="w-px h-5 bg-white/20" />
+        <button
+          onClick={() => togglePanel('inventory')}
+          className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+            panel === 'inventory' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+          }`}
+        >
+          📦 Inventory
+        </button>
+        <button
+          onClick={() => togglePanel('finance')}
+          className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+            panel === 'finance' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+          }`}
+        >
+          💰 Finance
+        </button>
+      </div>
+
+      {events.length > 0 && (
+        <div className="pointer-events-none absolute bottom-4 right-4 flex flex-col items-end gap-1">
+          {events.slice(0, 3).map((event, i) => (
+            <div key={i} className="text-[11px] text-white/80 bg-black/60 rounded-full px-3 py-1" style={{ opacity: 1 - i * 0.25 }}>
+              {event}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {panel === 'inventory' && <InventoryPanel onClose={() => setPanel(null)} />}
+      {panel === 'finance' && <FinancePanel onClose={() => setPanel(null)} />}
 
       {mode === 'walk' && (
         <div className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-xs bg-black/60 rounded-full px-3 py-1">

@@ -34,10 +34,10 @@ export function LayoutRenderer({ withPhysics = false }: LayoutRendererProps) {
       {Object.values(fixtures).map((fixture) =>
         withPhysics ? (
           <RigidBody key={fixture.id} type="fixed" colliders="cuboid">
-            <Fixture category={fixture.category} cell={fixture.cell} rotation={fixture.rotation} />
+            <Fixture id={fixture.id} category={fixture.category} cell={fixture.cell} rotation={fixture.rotation} />
           </RigidBody>
         ) : (
-          <Fixture key={fixture.id} category={fixture.category} cell={fixture.cell} rotation={fixture.rotation} />
+          <Fixture id={fixture.id} key={fixture.id} category={fixture.category} cell={fixture.cell} rotation={fixture.rotation} />
         ),
       )}
     </group>
