@@ -3,11 +3,13 @@ import { useGameMode } from '../../stores/useGameMode'
 import { useFinance } from '../../stores/useFinance'
 import { useGameClock, formatClock } from '../../stores/useGameClock'
 import { useCustomers } from '../../stores/useCustomers'
+import { useStoreAtmosphere } from '../../stores/useStoreAtmosphere'
 import { BuildToolbar } from './BuildToolbar'
 import { InventoryPanel } from './InventoryPanel'
 import { FinancePanel } from './FinancePanel'
+import { StaffPanel } from './StaffPanel'
 
-type Panel = 'inventory' | 'finance' | null
+type Panel = 'inventory' | 'finance' | 'staff' | null
 
 export function HUD() {
   const mode = useGameMode((s) => s.mode)
@@ -18,6 +20,7 @@ export function HUD() {
   const clockLabel = useGameClock((s) => formatClock(s.dayProgress))
   const activeCustomers = useCustomers((s) => s.activeCount)
   const events = useCustomers((s) => s.events)
+  const cleanliness = useStoreAtmosphere((s) => s.cleanliness)
 
   const [panel, setPanel] = useState<Panel>(null)
   const togglePanel = (p: Panel) => setPanel((current) => (current === p ? null : p))
@@ -54,6 +57,8 @@ export function HUD() {
         <div className="w-px h-5 bg-white/20" />
         <span className="text-white/70">🧍 {activeCustomers}</span>
         <div className="w-px h-5 bg-white/20" />
+        <span className={`text-white/70 ${cleanliness < 40 ? 'text-red-400' : ''}`}>🧹 {Math.round(cleanliness)}%</span>
+        <div className="w-px h-5 bg-white/20" />
         <button
           onClick={() => togglePanel('inventory')}
           className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
@@ -61,6 +66,14 @@ export function HUD() {
           }`}
         >
           📦 Inventory
+        </button>
+        <button
+          onClick={() => togglePanel('staff')}
+          className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+            panel === 'staff' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+          }`}
+        >
+          👥 Staff
         </button>
         <button
           onClick={() => togglePanel('finance')}
@@ -83,6 +96,7 @@ export function HUD() {
       )}
 
       {panel === 'inventory' && <InventoryPanel onClose={() => setPanel(null)} />}
+      {panel === 'staff' && <StaffPanel onClose={() => setPanel(null)} />}
       {panel === 'finance' && <FinancePanel onClose={() => setPanel(null)} />}
 
       {mode === 'walk' && (

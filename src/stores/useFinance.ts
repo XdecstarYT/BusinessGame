@@ -13,7 +13,7 @@ interface FinanceState {
 
   spend: (amount: number) => boolean
   recordSale: (revenue: number, cogs: number) => void
-  endDay: (day: number) => void
+  endDay: (day: number, payroll: number) => void
 }
 
 export const useFinance = create<FinanceState>((set, get) => ({
@@ -38,11 +38,11 @@ export const useFinance = create<FinanceState>((set, get) => ({
     })
   },
 
-  endDay: (day) => {
+  endDay: (day, payroll) => {
     const state = get()
-    const summary = computeDaySummary(day, state.dailyRevenue, state.dailyCogs, DAILY_RENT)
+    const summary = computeDaySummary(day, state.dailyRevenue, state.dailyCogs, DAILY_RENT, payroll)
     set({
-      cash: state.cash - DAILY_RENT,
+      cash: state.cash - DAILY_RENT - payroll,
       dailyRevenue: 0,
       dailyCogs: 0,
       history: [...state.history, summary].slice(-MAX_HISTORY_DAYS),

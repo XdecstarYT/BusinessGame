@@ -9,9 +9,12 @@ import { LayoutRenderer } from '../components/3d/LayoutRenderer'
 import { Ghost } from '../components/3d/Ghost'
 import { LODTestProps } from '../components/3d/LODTestProps'
 import { SkyGradient } from '../components/3d/SkyGradient'
+import { StaffLayer } from '../components/3d/StaffLayer'
+import { StoreLighting } from '../components/3d/StoreLighting'
 import { useGridSnap, type SnapTarget } from '../hooks/useGridSnap'
 import { useBuildTool } from '../stores/useBuildTool'
 import { useInventory } from '../stores/useInventory'
+import { useStaff } from '../stores/useStaff'
 import { useStoreLayout } from '../stores/useStoreLayout'
 import { GRID_WIDTH, GRID_DEPTH, cellKey, edgeKey } from '../systems/grid'
 import type { FixtureCategory } from '../data/fixtureDefinitions'
@@ -32,6 +35,7 @@ export function BuildModeScene() {
   const hasFloorAt = useStoreLayout((s) => s.hasFloorAt)
   const hasFixtureAt = useStoreLayout((s) => s.hasFixtureAt)
   const removeInventoryFixture = useInventory((s) => s.removeFixture)
+  const unassignStaffFixture = useStaff((s) => s.unassignFixture)
 
   const isValid = useCallback(
     (target: NonNullable<SnapTarget>) => {
@@ -59,7 +63,10 @@ export function BuildModeScene() {
         if (isRemove) {
           const removed = Object.values(fixtures).find((f) => f.cell.x === target.cell.x && f.cell.z === target.cell.z)
           removeFixtureAt(target.cell)
-          if (removed) removeInventoryFixture(removed.id)
+          if (removed) {
+            removeInventoryFixture(removed.id)
+            unassignStaffFixture(removed.id)
+          }
         } else if (target.valid) {
           placeFixture(tool as FixtureCategory, target.cell, rotation)
         }
@@ -77,14 +84,14 @@ export function BuildModeScene() {
       placeFixture,
       removeFixtureAt,
       removeInventoryFixture,
+      unassignStaffFixture,
     ],
   )
 
   return (
     <>
       <SkyGradient />
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[15, 20, 10]} intensity={1.3} castShadow shadow-mapSize={[2048, 2048]} />
+      <StoreLighting directionalPosition={[15, 20, 10]} />
       <OrbitControls
         makeDefault
         target={[GRID_WIDTH / 2, 0, GRID_DEPTH / 2]}
@@ -97,6 +104,7 @@ export function BuildModeScene() {
       <LayoutRenderer />
       <Ghost target={target} fixtureCategory={tool === 'shelf' || tool === 'checkout' ? tool : undefined} rotation={rotation} />
       <CustomersLayer />
+      <StaffLayer />
       <LODTestProps />
       <DustMotes areaSize={[GRID_WIDTH, 3.5, GRID_DEPTH]} center={[GRID_WIDTH / 2, 2, GRID_DEPTH / 2]} />
     </>

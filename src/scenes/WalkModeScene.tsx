@@ -6,14 +6,15 @@ import { LayoutRenderer } from '../components/3d/LayoutRenderer'
 import { Player } from '../components/3d/Player'
 import { LODTestProps } from '../components/3d/LODTestProps'
 import { SkyGradient } from '../components/3d/SkyGradient'
+import { StaffLayer } from '../components/3d/StaffLayer'
+import { StoreLighting } from '../components/3d/StoreLighting'
 import { GRID_WIDTH, GRID_DEPTH } from '../systems/grid'
 
 export function WalkModeScene() {
   return (
     <>
       <SkyGradient />
-      <ambientLight intensity={0.55} />
-      <directionalLight position={[15, 20, 10]} intensity={1.3} castShadow shadow-mapSize={[2048, 2048]} />
+      <StoreLighting directionalPosition={[15, 20, 10]} />
       <Physics gravity={[0, -9.81, 0]}>
         <Player spawn={[2, 1, 2]} />
         <RigidBody type="fixed" colliders="cuboid">
@@ -22,6 +23,7 @@ export function WalkModeScene() {
         <LayoutRenderer withPhysics />
       </Physics>
       <CustomersLayer />
+      <StaffLayer />
       <LODTestProps />
       <DustMotes areaSize={[GRID_WIDTH, 3.5, GRID_DEPTH]} center={[GRID_WIDTH / 2, 2, GRID_DEPTH / 2]} />
     </>

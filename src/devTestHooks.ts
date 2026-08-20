@@ -7,7 +7,10 @@ import { useInventory } from './stores/useInventory'
 import { useFinance } from './stores/useFinance'
 import { useGameClock } from './stores/useGameClock'
 import { useCustomers } from './stores/useCustomers'
+import { useStaff } from './stores/useStaff'
+import { useStoreAtmosphere } from './stores/useStoreAtmosphere'
 import { getLiveCustomers } from './systems/customerSimulation'
+import { getLiveStaff } from './systems/staffSimulation'
 
 declare global {
   interface Window {
@@ -17,7 +20,10 @@ declare global {
       useFinance: typeof useFinance
       useGameClock: typeof useGameClock
       useCustomers: typeof useCustomers
+      useStaff: typeof useStaff
+      useStoreAtmosphere: typeof useStoreAtmosphere
       getLiveCustomers: typeof getLiveCustomers
+      getLiveStaff: typeof getLiveStaff
     }
   }
 }
@@ -28,5 +34,8 @@ window.__retailEmpireDebug = {
   useFinance,
   useGameClock,
   useCustomers,
+  useStaff,
+  useStoreAtmosphere,
   getLiveCustomers,
+  getLiveStaff,
 }

@@ -1,5 +1,6 @@
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { DAILY_RENT, useFinance } from '../../stores/useFinance'
+import { useStaff } from '../../stores/useStaff'
 
 interface FinancePanelProps {
   onClose: () => void
@@ -10,6 +11,7 @@ export function FinancePanel({ onClose }: FinancePanelProps) {
   const dailyRevenue = useFinance((s) => s.dailyRevenue)
   const dailyCogs = useFinance((s) => s.dailyCogs)
   const history = useFinance((s) => s.history)
+  const payroll = useStaff((s) => s.totalDailyPayroll())
 
   const grossProfit = dailyRevenue - dailyCogs
   const chartData = history.map((d) => ({ day: `D${d.day}`, profit: Math.round(d.profit * 100) / 100 }))
@@ -29,6 +31,7 @@ export function FinancePanel({ onClose }: FinancePanelProps) {
         <Row label="COGS (today)" value={`$${dailyCogs.toFixed(2)}`} />
         <Row label="Gross profit (today)" value={`$${grossProfit.toFixed(2)}`} positive={grossProfit >= 0} />
         <Row label="Rent (due at close)" value={`$${DAILY_RENT.toFixed(2)}`} />
+        <Row label="Payroll (due at close)" value={`$${payroll.toFixed(2)}`} />
       </div>
 
       <div className="px-4 py-3 border-t border-white/10">

@@ -9,9 +9,13 @@ import { useStoreLayout, type PlacedFixture } from '../stores/useStoreLayout'
 import { useInventory } from '../stores/useInventory'
 import { useFinance } from '../stores/useFinance'
 import { useCustomers } from '../stores/useCustomers'
+import { useStoreAtmosphere } from '../stores/useStoreAtmosphere'
 import { PRODUCT_MAP } from '../data/products'
-import { findPath, type WallSegment } from './pathfinding'
-import { cellCenterToWorld, worldToCell, type Cell } from './grid'
+import type { WallSegment } from './pathfinding'
+import type { Cell } from './grid'
+import { cellToVec, moveAlongPath, routeEntityTo } from './movement'
+import { checkoutStaffing } from './staffSimulation'
+import { checkoutDwellMultiplier } from './staffAI'
 import {
   cartTotal,
   pickCheckout,
@@ -27,9 +31,8 @@ export const MAX_CUSTOMERS = 6
 
 const CUSTOMER_SPEED = 1.6
 const SHELF_DWELL_SECONDS = 1.2
-const CHECKOUT_DWELL_SECONDS = 1.8
+const BASE_CHECKOUT_DWELL_SECONDS = 1.8
 const CHECKOUT_POLL_SECONDS = 0.3
-const ARRIVE_EPSILON = 0.08
 const SPAWN_INTERVAL_MIN = 6
 const SPAWN_INTERVAL_MAX = 12
 
@@ -59,11 +62,6 @@ function randomSpawnInterval(): number {
 
 export function getLiveCustomers(): readonly LiveCustomer[] {
   return customers
-}
-
-function cellToVec(cell: Cell): THREE.Vector3 {
-  const [x, z] = cellCenterToWorld(cell)
-  return new THREE.Vector3(x, 0, z)
 }
 
 function toShoppable(fixtures: Record<string, PlacedFixture>): ShoppableFixture[] {
@@ -99,15 +97,12 @@ function trySpawn(floors: Record<string, Cell>, walls: Record<string, WallSegmen
   const target = pickShoppingTarget(shoppable, shelfStock, new Set())
   if (!target) return
 
-  const cellPath = findPath(entrance, target.cell, { floors, walls })
-  if (!cellPath) return
-
-  customers.push({
+  const customer: LiveCustomer = {
     id: `c${nextId++}`,
     phase: 'shopping',
     position: cellToVec(entrance),
     rotationY: 0,
-    path: cellPath.map(cellToVec),
+    path: [],
     pathIndex: 0,
     cart: [],
     wantCount: randomWantCount(),
@@ -115,42 +110,17 @@ function trySpawn(floors: Record<string, Cell>, walls: Record<string, WallSegmen
     targetFixtureId: target.id,
     checkoutFixtureId: null,
     dwellTimer: 0,
-  })
-  useCustomers.getState().setActiveCount(customers.length)
-}
-
-/** Moves the customer toward the next path waypoint. Returns true once the
- * end of the path has been reached this frame. */
-function moveAlongPath(customer: LiveCustomer, delta: number): boolean {
-  if (customer.pathIndex >= customer.path.length) return true
-  const target = customer.path[customer.pathIndex]
-  const toTarget = new THREE.Vector3().subVectors(target, customer.position)
-  const distance = toTarget.length()
-
-  if (distance < ARRIVE_EPSILON) {
-    customer.pathIndex += 1
-    return customer.pathIndex >= customer.path.length
   }
+  if (!routeEntityTo(customer, target.cell, { floors, walls })) return
 
-  toTarget.normalize()
-  customer.position.addScaledVector(toTarget, Math.min(distance, CUSTOMER_SPEED * delta))
-  customer.rotationY = Math.atan2(toTarget.x, toTarget.z)
-  return false
+  customers.push(customer)
+  useCustomers.getState().setActiveCount(customers.length)
 }
 
 interface StoreSnapshot {
   floors: Record<string, Cell>
   walls: Record<string, WallSegment>
   fixtures: Record<string, PlacedFixture>
-}
-
-function routeTo(customer: LiveCustomer, goal: Cell, snapshot: StoreSnapshot): boolean {
-  const fromCell = worldToCell(customer.position.x, customer.position.z)
-  const cellPath = findPath(fromCell, goal, snapshot)
-  if (!cellPath) return false
-  customer.path = cellPath.map(cellToVec)
-  customer.pathIndex = 0
-  return true
 }
 
 /** Called once a shopping-leg path completes: pick up the item, decide the
@@ -174,7 +144,7 @@ function onShelfArrival(customer: LiveCustomer, snapshot: StoreSnapshot) {
 
   if (nextShelf) {
     const cell = findFixtureCell(snapshot.fixtures, nextShelf.id)
-    if (cell && routeTo(customer, cell, snapshot)) {
+    if (cell && routeEntityTo(customer, cell, snapshot)) {
       customer.targetFixtureId = nextShelf.id
       return
     }
@@ -184,7 +154,7 @@ function onShelfArrival(customer: LiveCustomer, snapshot: StoreSnapshot) {
   const checkout = pickCheckout(shoppable)
   if (checkout) {
     const cell = findFixtureCell(snapshot.fixtures, checkout.id)
-    if (cell && routeTo(customer, cell, snapshot)) {
+    if (cell && routeEntityTo(customer, cell, snapshot)) {
       customer.checkoutFixtureId = checkout.id
       customer.phase = 'queueing'
       return
@@ -206,7 +176,8 @@ function onCheckoutQueuePoll(customer: LiveCustomer, snapshot: StoreSnapshot) {
   }
   occupiedCheckouts.add(fixtureId)
   customer.phase = 'checkingOut'
-  customer.dwellTimer = CHECKOUT_DWELL_SECONDS
+  const { staffed, morale } = checkoutStaffing(fixtureId)
+  customer.dwellTimer = BASE_CHECKOUT_DWELL_SECONDS * checkoutDwellMultiplier(staffed, morale)
 }
 
 function completeCheckout(customer: LiveCustomer, snapshot: StoreSnapshot) {
@@ -215,6 +186,7 @@ function completeCheckout(customer: LiveCustomer, snapshot: StoreSnapshot) {
   const { revenue, cogs } = cartTotal(customer.cart)
   if (revenue > 0) {
     useFinance.getState().recordSale(revenue, cogs)
+    useStoreAtmosphere.getState().dirtyFromSale()
     const itemCount = customer.cart.reduce((sum, line) => sum + line.quantity, 0)
     const label = customer.cart.length === 1 ? (PRODUCT_MAP[customer.cart[0].productId]?.name ?? 'item') : `${itemCount} items`
     useCustomers.getState().recordSaleEvent(`Sale: $${revenue.toFixed(2)} (${label})`)
@@ -226,7 +198,7 @@ function completeCheckout(customer: LiveCustomer, snapshot: StoreSnapshot) {
 function sendHome(customer: LiveCustomer, snapshot: StoreSnapshot) {
   const entrance = pickEntranceCell(snapshot.floors)
   customer.phase = 'leaving'
-  if (entrance && routeTo(customer, entrance, snapshot)) return
+  if (entrance && routeEntityTo(customer, entrance, snapshot)) return
   // No route back — just despawn in place next tick.
   customer.path = []
   customer.pathIndex = 0
@@ -240,7 +212,7 @@ export function tickCustomers(delta: number): void {
 
   spawnTimer -= delta
   if (spawnTimer <= 0) {
-    spawnTimer = randomSpawnInterval()
+    spawnTimer = randomSpawnInterval() / atmosphereSpawnFactor()
     if (spawnEligible(fixtures, floors)) trySpawn(floors, walls, fixtures)
   }
 
@@ -255,7 +227,7 @@ export function tickCustomers(delta: number): void {
         else if (customer.phase === 'checkingOut') completeCheckout(customer, snapshot)
       }
     } else if (customer.pathIndex < customer.path.length) {
-      const arrived = moveAlongPath(customer, delta)
+      const arrived = moveAlongPath(customer, CUSTOMER_SPEED, delta)
       if (arrived) {
         // Browse for a beat before picking an item off the shelf.
         if (customer.phase === 'shopping') customer.dwellTimer = SHELF_DWELL_SECONDS
@@ -272,4 +244,9 @@ export function tickCustomers(delta: number): void {
   if (customers.length !== useCustomers.getState().activeCount) {
     useCustomers.getState().setActiveCount(customers.length)
   }
+}
+
+/** A cleaner, better-lit store draws customers a bit more often. */
+function atmosphereSpawnFactor(): number {
+  return 0.7 + useStoreAtmosphere.getState().atmosphereScore() * 0.6
 }

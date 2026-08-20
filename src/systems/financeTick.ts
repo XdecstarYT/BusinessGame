@@ -5,9 +5,10 @@ export interface DaySummary {
   revenue: number
   cogs: number
   rent: number
+  payroll: number
   profit: number
 }
 
-export function computeDaySummary(day: number, revenue: number, cogs: number, rent: number): DaySummary {
-  return { day, revenue, cogs, rent, profit: revenue - cogs - rent }
+export function computeDaySummary(day: number, revenue: number, cogs: number, rent: number, payroll: number): DaySummary {
+  return { day, revenue, cogs, rent, payroll, profit: revenue - cogs - rent - payroll }
 }

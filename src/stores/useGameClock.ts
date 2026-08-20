@@ -1,6 +1,11 @@
 import { create } from 'zustand'
 import { useFinance } from './useFinance'
 import { useCustomers } from './useCustomers'
+import { useStaff } from './useStaff'
+import { useStoreAtmosphere } from './useStoreAtmosphere'
+import { useStoreLayout } from './useStoreLayout'
+import { useInventory } from './useInventory'
+import type { StaffRole } from '../data/staffDefinitions'
 
 export const DAY_LENGTH_SECONDS = 120
 
@@ -21,7 +26,18 @@ export const useGameClock = create<GameClockState>((set, get) => ({
 
     if (progress >= 1) {
       progress -= 1
-      useFinance.getState().endDay(day)
+
+      const layout = useStoreLayout.getState()
+      const shelfStock = useInventory.getState().shelfStock
+      const relevantCounts: Record<StaffRole, number> = {
+        stocker: Object.values(layout.fixtures).filter((f) => f.category === 'shelf' && shelfStock[f.id]?.productId).length,
+        cashier: Object.values(layout.fixtures).filter((f) => f.category === 'checkout').length,
+        janitor: Object.keys(layout.floors).length,
+      }
+
+      useFinance.getState().endDay(day, useStaff.getState().totalDailyPayroll())
+      useStaff.getState().applyDailyDrift(relevantCounts)
+      useStoreAtmosphere.getState().decayDaily()
       useCustomers.getState().resetDaily()
       day += 1
     }
@@ -30,9 +46,17 @@ export const useGameClock = create<GameClockState>((set, get) => ({
   },
 }))
 
-/** Cosmetic 8am–10pm store-hours clock derived from day progress. */
+/** Cosmetic 8am–10pm store-hours window, mapped from day progress (0..1). */
+export function dayProgressToHour(dayProgress: number): number {
+  return 8 + dayProgress * 14
+}
+
+export function currentGameHour(): number {
+  return dayProgressToHour(useGameClock.getState().dayProgress)
+}
+
 export function formatClock(dayProgress: number): string {
-  const hour = 8 + dayProgress * 14
+  const hour = dayProgressToHour(dayProgress)
   const h = Math.floor(hour)
   const m = Math.floor((hour - h) * 60)
   const period = h >= 12 ? 'PM' : 'AM'
