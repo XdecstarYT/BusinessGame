@@ -1,0 +1,88 @@
+import { useEffect, useRef } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { PointerLockControls } from '@react-three/drei'
+import { RigidBody, CapsuleCollider, type RapierRigidBody } from '@react-three/rapier'
+import * as THREE from 'three'
+
+const SPEED = 4.2
+const EYE_HEIGHT = 1.6
+const CAPSULE_HALF_HEIGHT = 0.45
+const CAPSULE_RADIUS = 0.3
+
+interface KeyState {
+  forward: boolean
+  backward: boolean
+  left: boolean
+  right: boolean
+}
+
+const KEY_MAP: Record<string, keyof KeyState> = {
+  KeyW: 'forward',
+  ArrowUp: 'forward',
+  KeyS: 'backward',
+  ArrowDown: 'backward',
+  KeyA: 'left',
+  ArrowLeft: 'left',
+  KeyD: 'right',
+  ArrowRight: 'right',
+}
+
+interface PlayerProps {
+  spawn?: [number, number, number]
+}
+
+export function Player({ spawn = [2, 1, 2] }: PlayerProps) {
+  const bodyRef = useRef<RapierRigidBody>(null)
+  const keysRef = useRef<KeyState>({ forward: false, backward: false, left: false, right: false })
+
+  useEffect(() => {
+    const handle = (down: boolean) => (event: KeyboardEvent) => {
+      const key = KEY_MAP[event.code]
+      if (key) keysRef.current[key] = down
+    }
+    const onKeyDown = handle(true)
+    const onKeyUp = handle(false)
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+    }
+  }, [])
+
+  useFrame(({ camera }) => {
+    const body = bodyRef.current
+    if (!body) return
+
+    const { forward, backward, left, right } = keysRef.current
+    const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ')
+    const forwardVec = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(0, euler.y, 0))
+    const rightVec = new THREE.Vector3(1, 0, 0).applyEuler(new THREE.Euler(0, euler.y, 0))
+
+    const dir = new THREE.Vector3()
+    if (forward) dir.add(forwardVec)
+    if (backward) dir.sub(forwardVec)
+    if (right) dir.add(rightVec)
+    if (left) dir.sub(rightVec)
+
+    const currentVel = body.linvel()
+    if (dir.lengthSq() > 0) {
+      dir.normalize().multiplyScalar(SPEED)
+      body.setLinvel({ x: dir.x, y: currentVel.y, z: dir.z }, true)
+    } else {
+      body.setLinvel({ x: 0, y: currentVel.y, z: 0 }, true)
+    }
+
+    const pos = body.translation()
+    camera.position.set(pos.x, pos.y + EYE_HEIGHT - CAPSULE_HALF_HEIGHT - CAPSULE_RADIUS, pos.z)
+  })
+
+  return (
+    <>
+      <PointerLockControls />
+      <RigidBody ref={bodyRef} position={spawn} colliders={false} mass={1} enabledRotations={[false, false, false]}>
+        <CapsuleCollider args={[CAPSULE_HALF_HEIGHT, CAPSULE_RADIUS]} />
+      </RigidBody>
+    </>
+  )
+}
