@@ -84,11 +84,10 @@ export default function App() {
           return renderer
         }}
         shadows
-        camera={{ position: BUILD_CAMERA_POSITION, fov: 50, near: 0.1, far: 200 }}
+        camera={{ position: BUILD_CAMERA_POSITION, fov: 50, near: 0.1, far: 1200 }}
       >
         <Suspense fallback={null}>
-          <color attach="background" args={['#1a1d22']} />
-          <fog attach="fog" args={['#1a1d22', 30, 90]} />
+          <fog attach="fog" args={['#c9d6e3', 40, 140]} />
           <ConfigureRenderer />
           <CameraModeRig mode={mode} />
           {mode === 'build' ? <BuildModeScene /> : <WalkModeScene />}

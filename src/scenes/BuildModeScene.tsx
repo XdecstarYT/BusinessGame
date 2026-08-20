@@ -1,10 +1,13 @@
 import { useCallback } from 'react'
 import { OrbitControls } from '@react-three/drei'
 import type { ThreeEvent } from '@react-three/fiber'
+import { DustMotes } from '../components/3d/DustMotes'
 import { GridFloor } from '../components/3d/GridFloor'
+import { Ground } from '../components/3d/Ground'
 import { LayoutRenderer } from '../components/3d/LayoutRenderer'
 import { Ghost } from '../components/3d/Ghost'
 import { LODTestProps } from '../components/3d/LODTestProps'
+import { SkyGradient } from '../components/3d/SkyGradient'
 import { useGridSnap, type SnapTarget } from '../hooks/useGridSnap'
 import { useBuildTool } from '../stores/useBuildTool'
 import { useStoreLayout } from '../stores/useStoreLayout'
@@ -58,6 +61,7 @@ export function BuildModeScene() {
 
   return (
     <>
+      <SkyGradient />
       <ambientLight intensity={0.6} />
       <directionalLight position={[15, 20, 10]} intensity={1.3} castShadow shadow-mapSize={[2048, 2048]} />
       <OrbitControls
@@ -67,10 +71,12 @@ export function BuildModeScene() {
         maxDistance={40}
         maxPolarAngle={Math.PI / 2.15}
       />
+      <Ground />
       <GridFloor onPointerMove={onPointerMove} onPointerLeave={onPointerLeave} onPointerDown={handlePointerDown} />
       <LayoutRenderer />
       <Ghost target={target} fixtureCategory={tool === 'shelf' || tool === 'checkout' ? tool : undefined} rotation={rotation} />
       <LODTestProps />
+      <DustMotes areaSize={[GRID_WIDTH, 3.5, GRID_DEPTH]} center={[GRID_WIDTH / 2, 2, GRID_DEPTH / 2]} />
     </>
   )
 }

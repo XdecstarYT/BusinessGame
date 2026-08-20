@@ -1,4 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
+import { useFrame } from '@react-three/fiber'
+import type { Mesh, MeshStandardMaterial } from 'three'
 import { CELL_SIZE, WALL_HEIGHT, WALL_THICKNESS, cellCenterToWorld, edgeToWorld } from '../../systems/grid'
 import { FIXTURE_DEFINITIONS, type FixtureCategory } from '../../data/fixtureDefinitions'
 import type { SnapTarget } from '../../hooks/useGridSnap'
@@ -14,13 +16,22 @@ const INVALID_COLOR = '#f87171'
 
 export function Ghost({ target, fixtureCategory, rotation }: GhostProps) {
   const geometry = useGhostGeometry(target, fixtureCategory)
+  const meshRef = useRef<Mesh>(null)
+
+  // Gentle opacity pulse so the placement cursor reads as "live" feedback
+  // rather than a flat, inert overlay.
+  useFrame(({ clock }) => {
+    const material = meshRef.current?.material as MeshStandardMaterial | undefined
+    if (material) material.opacity = 0.35 + Math.sin(clock.elapsedTime * 4) * 0.15
+  })
+
   if (!target || !geometry) return null
 
   const color = target.valid ? VALID_COLOR : INVALID_COLOR
 
   return (
     <group position={geometry.position} rotation={[0, geometry.rotationY ?? rotation, 0]}>
-      <mesh>
+      <mesh ref={meshRef}>
         {geometry.type === 'wall' ? (
           <boxGeometry args={[CELL_SIZE, WALL_HEIGHT, WALL_THICKNESS]} />
         ) : geometry.type === 'floor' ? (

@@ -8,6 +8,9 @@ const SPEED = 4.2
 const EYE_HEIGHT = 1.6
 const CAPSULE_HALF_HEIGHT = 0.45
 const CAPSULE_RADIUS = 0.3
+const BOB_FREQUENCY = 9
+const BOB_AMPLITUDE = 0.045
+const BOB_SWAY_AMPLITUDE = 0.02
 
 interface KeyState {
   forward: boolean
@@ -34,6 +37,7 @@ interface PlayerProps {
 export function Player({ spawn = [2, 1, 2] }: PlayerProps) {
   const bodyRef = useRef<RapierRigidBody>(null)
   const keysRef = useRef<KeyState>({ forward: false, backward: false, left: false, right: false })
+  const bobPhase = useRef(0)
 
   useEffect(() => {
     const handle = (down: boolean) => (event: KeyboardEvent) => {
@@ -50,7 +54,7 @@ export function Player({ spawn = [2, 1, 2] }: PlayerProps) {
     }
   }, [])
 
-  useFrame(({ camera }) => {
+  useFrame(({ camera }, delta) => {
     const body = bodyRef.current
     if (!body) return
 
@@ -65,16 +69,29 @@ export function Player({ spawn = [2, 1, 2] }: PlayerProps) {
     if (right) dir.add(rightVec)
     if (left) dir.sub(rightVec)
 
+    const isMoving = dir.lengthSq() > 0
     const currentVel = body.linvel()
-    if (dir.lengthSq() > 0) {
+    if (isMoving) {
       dir.normalize().multiplyScalar(SPEED)
       body.setLinvel({ x: dir.x, y: currentVel.y, z: dir.z }, true)
     } else {
       body.setLinvel({ x: 0, y: currentVel.y, z: 0 }, true)
     }
 
+    // Footstep head-bob: only while grounded and moving, eases back to
+    // center when idle so it never reads as constant camera jitter.
+    const grounded = Math.abs(currentVel.y) < 0.5
+    if (isMoving && grounded) {
+      bobPhase.current += delta * BOB_FREQUENCY
+    } else {
+      bobPhase.current *= 0.85
+    }
+    const bobY = Math.abs(Math.sin(bobPhase.current)) * BOB_AMPLITUDE
+    const bobX = Math.sin(bobPhase.current * 0.5) * BOB_SWAY_AMPLITUDE
+
     const pos = body.translation()
-    camera.position.set(pos.x, pos.y + EYE_HEIGHT - CAPSULE_HALF_HEIGHT - CAPSULE_RADIUS, pos.z)
+    const eyeY = pos.y + EYE_HEIGHT - CAPSULE_HALF_HEIGHT - CAPSULE_RADIUS
+    camera.position.set(pos.x + rightVec.x * bobX, eyeY + bobY, pos.z + rightVec.z * bobX)
   })
 
   return (
