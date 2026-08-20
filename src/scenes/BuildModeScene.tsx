@@ -16,17 +16,18 @@ import { useGridSnap, type SnapTarget } from '../hooks/useGridSnap'
 import { useBuildTool } from '../stores/useBuildTool'
 import { useInventory } from '../stores/useInventory'
 import { useStaff } from '../stores/useStaff'
-import { useStoreLayout } from '../stores/useStoreLayout'
-import { GRID_WIDTH, GRID_DEPTH, cellKey, edgeKey } from '../systems/grid'
+import { EMPTY_LAYOUT, useStoreLayout } from '../stores/useStoreLayout'
+import { GRID_WIDTH, GRID_DEPTH, LEVEL_HEIGHT, cellKey, edgeKey } from '../systems/grid'
 import type { FixtureCategory } from '../data/fixtureDefinitions'
 
 export function BuildModeScene() {
   const tool = useBuildTool((s) => s.tool)
   const rotation = useBuildTool((s) => s.rotation)
 
-  const floors = useStoreLayout((s) => s.floors)
-  const walls = useStoreLayout((s) => s.walls)
-  const fixtures = useStoreLayout((s) => s.fixtures)
+  const activeLevel = useStoreLayout((s) => s.activeLevel)
+  const floors = useStoreLayout((s) => (s.activeLevel === 0 ? s.floors : (s.upperLevels[s.activeLevel]?.floors ?? EMPTY_LAYOUT.floors)))
+  const walls = useStoreLayout((s) => (s.activeLevel === 0 ? s.walls : (s.upperLevels[s.activeLevel]?.walls ?? EMPTY_LAYOUT.walls)))
+  const fixtures = useStoreLayout((s) => (s.activeLevel === 0 ? s.fixtures : (s.upperLevels[s.activeLevel]?.fixtures ?? EMPTY_LAYOUT.fixtures)))
   const placeFloor = useStoreLayout((s) => s.placeFloor)
   const removeFloor = useStoreLayout((s) => s.removeFloor)
   const placeWall = useStoreLayout((s) => s.placeWall)
@@ -35,6 +36,7 @@ export function BuildModeScene() {
   const removeFixtureAt = useStoreLayout((s) => s.removeFixtureAt)
   const hasFloorAt = useStoreLayout((s) => s.hasFloorAt)
   const hasFixtureAt = useStoreLayout((s) => s.hasFixtureAt)
+  const maxLevel = useStoreLayout((s) => s.maxLevel)
   const removeInventoryFixture = useInventory((s) => s.removeFixture)
   const unassignStaffFixture = useStaff((s) => s.unassignFixture)
 
@@ -101,9 +103,22 @@ export function BuildModeScene() {
         maxPolarAngle={Math.PI / 2.15}
       />
       <Ground />
-      <GridFloor onPointerMove={onPointerMove} onPointerLeave={onPointerLeave} onPointerDown={handlePointerDown} />
-      <LayoutRenderer />
-      <Ghost target={target} fixtureCategory={tool === 'shelf' || tool === 'checkout' ? tool : undefined} rotation={rotation} />
+
+      {Array.from({ length: maxLevel + 1 }, (_, level) => (
+        <group key={level} position={[0, level * LEVEL_HEIGHT, 0]}>
+          <LayoutRenderer level={level} />
+        </group>
+      ))}
+
+      <group position={[0, activeLevel * LEVEL_HEIGHT, 0]}>
+        <GridFloor onPointerMove={onPointerMove} onPointerLeave={onPointerLeave} onPointerDown={handlePointerDown} />
+        <Ghost
+          target={target}
+          fixtureCategory={tool === 'shelf' || tool === 'checkout' || tool === 'stairs' ? tool : undefined}
+          rotation={rotation}
+        />
+      </group>
+
       <CustomersLayer />
       <StaffLayer />
       <SalePopsLayer />

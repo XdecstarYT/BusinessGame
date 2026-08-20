@@ -5,6 +5,8 @@ export const GRID_WIDTH = 24
 export const GRID_DEPTH = 24
 export const WALL_HEIGHT = 3
 export const WALL_THICKNESS = 0.15
+/** Vertical spacing between building levels — a level's walls exactly meet the floor above. */
+export const LEVEL_HEIGHT = WALL_HEIGHT
 
 export type WallOrientation = 'N' | 'W'
 

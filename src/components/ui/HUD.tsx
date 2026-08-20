@@ -5,6 +5,7 @@ import { useGameClock, formatClock } from '../../stores/useGameClock'
 import { useCustomers } from '../../stores/useCustomers'
 import { useStoreAtmosphere } from '../../stores/useStoreAtmosphere'
 import { useReputation } from '../../stores/useReputation'
+import { useStoreLayout } from '../../stores/useStoreLayout'
 import { BuildToolbar } from './BuildToolbar'
 import { InventoryPanel } from './InventoryPanel'
 import { FinancePanel } from './FinancePanel'
@@ -25,6 +26,7 @@ export function HUD() {
   const events = useCustomers((s) => s.events)
   const cleanliness = useStoreAtmosphere((s) => s.cleanliness)
   const reputation = useReputation((s) => s.score)
+  const walkLevel = useStoreLayout((s) => s.activeLevel)
 
   const [panel, setPanel] = useState<Panel>(null)
   const togglePanel = (p: Panel) => setPanel((current) => (current === p ? null : p))
@@ -132,9 +134,14 @@ export function HUD() {
       {mode === 'city' && <CityMapPanel onClose={() => setMode('build')} />}
 
       {mode === 'walk' && (
-        <div className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-xs bg-black/60 rounded-full px-3 py-1">
-          Click to look around · WASD to move · Esc to release cursor
-        </div>
+        <>
+          <div className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-xs bg-black/60 rounded-full px-3 py-1">
+            Click to look around · WASD to move · Esc to release cursor · walk onto stairs to change floors
+          </div>
+          <div className="pointer-events-none absolute bottom-6 right-4 text-white/80 text-xs bg-black/60 rounded-full px-3 py-1">
+            🏢 {walkLevel === 0 ? 'Ground Floor' : `Floor ${walkLevel + 1}`}
+          </div>
+        </>
       )}
 
       {mode === 'build' && <BuildToolbar />}

@@ -35,10 +35,15 @@ export function CityMapPanel({ onClose }: CityMapPanelProps) {
             const owned = ownedPlotIds.includes(plot.id)
             const selected = selectedPlotId === plot.id
             return (
-              <button
+              <div
                 key={plot.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => selectPlot(plot.id)}
-                className={`text-left rounded-lg px-3 py-2 border transition-colors ${
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') selectPlot(plot.id)
+                }}
+                className={`text-left rounded-lg px-3 py-2 border transition-colors cursor-pointer ${
                   selected ? 'border-amber-400/60 bg-amber-400/10' : 'border-white/10 bg-white/5 hover:bg-white/10'
                 }`}
               >
@@ -65,7 +70,7 @@ export function CityMapPanel({ onClose }: CityMapPanelProps) {
                     </button>
                   </div>
                 )}
-              </button>
+              </div>
             )
           })}
         </div>

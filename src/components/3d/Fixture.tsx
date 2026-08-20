@@ -4,6 +4,7 @@ import { FIXTURE_DEFINITIONS, type FixtureCategory } from '../../data/fixtureDef
 import type { Cell } from '../../systems/grid'
 import { CheckoutFixture } from './CheckoutFixture'
 import { ShelfFixture } from './ShelfFixture'
+import { StairsFixture } from './StairsFixture'
 
 interface FixtureProps {
   id: string
@@ -20,6 +21,7 @@ export function Fixture({ id, category, cell, rotation }: FixtureProps) {
     <group position={[x, 0, z]} rotation={[0, rotation, 0]}>
       {category === 'shelf' && <ShelfFixture fixtureId={id} height={def.height} />}
       {category === 'checkout' && <CheckoutFixture height={def.height} />}
+      {category === 'stairs' && <StairsFixture />}
     </group>
   )
 }

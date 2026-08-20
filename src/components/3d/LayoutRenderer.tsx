@@ -1,19 +1,22 @@
 import { RigidBody } from '@react-three/rapier'
-import { useStoreLayout } from '../../stores/useStoreLayout'
+import { EMPTY_LAYOUT, useStoreLayout } from '../../stores/useStoreLayout'
 import { Floor } from './Floor'
 import { Wall } from './Wall'
 import { Fixture } from './Fixture'
 
 interface LayoutRendererProps {
   withPhysics?: boolean
+  /** Which building level to render — 0 (ground) by default. */
+  level?: number
 }
 
-/** Renders all placed floors/walls/fixtures. In Walk Mode (withPhysics) walls and
- * fixtures get fixed rigid-body colliders so the player can't walk through them. */
-export function LayoutRenderer({ withPhysics = false }: LayoutRendererProps) {
-  const floors = useStoreLayout((s) => s.floors)
-  const walls = useStoreLayout((s) => s.walls)
-  const fixtures = useStoreLayout((s) => s.fixtures)
+/** Renders all placed floors/walls/fixtures for one level. In Walk Mode
+ * (withPhysics) walls and fixtures get fixed rigid-body colliders so the
+ * player can't walk through them. */
+export function LayoutRenderer({ withPhysics = false, level = 0 }: LayoutRendererProps) {
+  const floors = useStoreLayout((s) => (level === 0 ? s.floors : (s.upperLevels[level]?.floors ?? EMPTY_LAYOUT.floors)))
+  const walls = useStoreLayout((s) => (level === 0 ? s.walls : (s.upperLevels[level]?.walls ?? EMPTY_LAYOUT.walls)))
+  const fixtures = useStoreLayout((s) => (level === 0 ? s.fixtures : (s.upperLevels[level]?.fixtures ?? EMPTY_LAYOUT.fixtures)))
 
   return (
     <group>

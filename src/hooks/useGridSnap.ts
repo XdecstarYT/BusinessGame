@@ -32,7 +32,7 @@ export type SnapTarget = FloorTarget | WallTarget | FixtureTarget | null
 
 /** Tracks the current pointer's snapped grid target for the active build tool. */
 export function useGridSnap(
-  tool: 'floor' | 'wall' | 'shelf' | 'checkout',
+  tool: 'floor' | 'wall' | 'shelf' | 'checkout' | 'stairs',
   isValid: (target: NonNullable<SnapTarget>) => boolean,
 ) {
   const [target, setTarget] = useState<SnapTarget>(null)
@@ -55,7 +55,7 @@ export function useGridSnap(
           next = { kind: 'floor', cell, valid: false }
           next.valid = isValid(next)
         }
-      } else if (tool === 'shelf' || tool === 'checkout') {
+      } else if (tool === 'shelf' || tool === 'checkout' || tool === 'stairs') {
         const cell = worldToCell(x, z)
         if (isWithinBounds(cell)) {
           next = { kind: 'fixture', cell, valid: false }

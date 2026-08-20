@@ -9,6 +9,7 @@ const TOOL_OPTIONS: { tool: BuildTool; label: string; cost: number }[] = [
   { tool: 'wall', label: 'Wall', cost: WALL_COST },
   { tool: 'shelf', label: FIXTURE_DEFINITIONS.shelf.label, cost: FIXTURE_DEFINITIONS.shelf.cost },
   { tool: 'checkout', label: FIXTURE_DEFINITIONS.checkout.label, cost: FIXTURE_DEFINITIONS.checkout.cost },
+  { tool: 'stairs', label: FIXTURE_DEFINITIONS.stairs.label, cost: FIXTURE_DEFINITIONS.stairs.cost },
 ]
 
 const btnBase =
@@ -27,9 +28,19 @@ export function BuildToolbar() {
   const serialize = useStoreLayout((s) => s.serialize)
   const loadBlueprint = useStoreLayout((s) => s.loadBlueprint)
 
-  const floorCount = useStoreLayout((s) => Object.keys(s.floors).length)
-  const wallCount = useStoreLayout((s) => Object.keys(s.walls).length)
-  const fixtureCount = useStoreLayout((s) => Object.keys(s.fixtures).length)
+  const floorCount = useStoreLayout((s) =>
+    Object.keys(s.activeLevel === 0 ? s.floors : (s.upperLevels[s.activeLevel]?.floors ?? {})).length,
+  )
+  const wallCount = useStoreLayout((s) =>
+    Object.keys(s.activeLevel === 0 ? s.walls : (s.upperLevels[s.activeLevel]?.walls ?? {})).length,
+  )
+  const fixtureCount = useStoreLayout((s) =>
+    Object.keys(s.activeLevel === 0 ? s.fixtures : (s.upperLevels[s.activeLevel]?.fixtures ?? {})).length,
+  )
+  const activeLevel = useStoreLayout((s) => s.activeLevel)
+  const maxLevel = useStoreLayout((s) => s.maxLevel)
+  const setActiveLevel = useStoreLayout((s) => s.setActiveLevel)
+  const addLevel = useStoreLayout((s) => s.addLevel)
 
   const [status, setStatus] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -85,6 +96,30 @@ export function BuildToolbar() {
     <div className="pointer-events-auto absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
       {status && <div className="rounded-full bg-black/80 text-white text-xs px-3 py-1">{status}</div>}
 
+      <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-lg">
+        <span className="text-[11px] text-white/50 mr-1">Level</span>
+        {Array.from({ length: maxLevel + 1 }, (_, level) => (
+          <button
+            key={level}
+            onClick={() => setActiveLevel(level)}
+            className={`${btnBase} px-2.5 py-1 text-xs ${
+              activeLevel === level
+                ? 'bg-emerald-500 border-emerald-400 text-white'
+                : 'bg-white/10 border-white/10 text-white/80 hover:bg-white/20'
+            }`}
+          >
+            {level === 0 ? 'Ground' : level + 1}
+          </button>
+        ))}
+        <button
+          onClick={addLevel}
+          className={`${btnBase} px-2.5 py-1 text-xs bg-white/10 border-white/10 text-white/80 hover:bg-white/20`}
+          title="Add a new floor above"
+        >
+          + Add Floor
+        </button>
+      </div>
+
       <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-xl px-3 py-2 shadow-lg">
         {TOOL_OPTIONS.map((opt) => (
           <button
@@ -105,7 +140,7 @@ export function BuildToolbar() {
 
         <button
           onClick={rotateSelection}
-          disabled={tool !== 'shelf' && tool !== 'checkout'}
+          disabled={tool !== 'shelf' && tool !== 'checkout' && tool !== 'stairs'}
           className={`${btnBase} bg-white/10 border-white/10 text-white/80 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10`}
           title="Rotate selection"
         >
@@ -169,8 +204,14 @@ export function BuildToolbar() {
       </div>
 
       <div className="text-[11px] text-white/60 bg-black/50 rounded-full px-3 py-0.5">
-        {floorCount} floor · {wallCount} wall · {fixtureCount} fixture — left-click place, right-click remove
+        {activeLevel === 0 ? 'Ground' : `Level ${activeLevel + 1}`} — {floorCount} floor · {wallCount} wall · {fixtureCount} fixture —
+        left-click place, right-click remove
       </div>
+      {activeLevel > 0 && (
+        <div className="text-[11px] text-amber-300/80 bg-black/50 rounded-full px-3 py-0.5">
+          Note: customers and staff currently only shop the ground floor — upper floors are buildable and walkable.
+        </div>
+      )}
     </div>
   )
 }
