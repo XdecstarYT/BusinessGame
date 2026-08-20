@@ -1,15 +1,19 @@
 import type { Mesh } from 'three'
+import { Html } from '@react-three/drei'
 
 interface CustomerNPCProps {
   accentRef?: (mesh: Mesh | null) => void
   basketRef?: (mesh: Mesh | null) => void
+  personaRef?: (el: HTMLDivElement | null) => void
 }
 
 /** Placeholder shopper: a capsule body + head, matching the box/plane
  * fidelity bar the rest of Phase 1/2 uses. Real character models are a
- * later-phase asset pass. The shirt accent and basket are exposed via refs
- * so CustomersLayer can recolor/toggle them imperatively per pool slot. */
-export function CustomerNPC({ accentRef, basketRef }: CustomerNPCProps) {
+ * later-phase asset pass. The shirt accent, basket, and persona icon are
+ * exposed via refs so CustomersLayer can update them imperatively per pool
+ * slot — Html tracks this group's world transform every frame on its own,
+ * so it follows the imperative position updates without any React state. */
+export function CustomerNPC({ accentRef, basketRef, personaRef }: CustomerNPCProps) {
   return (
     <group>
       <mesh position={[0, 0.55, 0]} castShadow>
@@ -28,6 +32,9 @@ export function CustomerNPC({ accentRef, basketRef }: CustomerNPCProps) {
         <boxGeometry args={[0.16, 0.13, 0.12]} />
         <meshStandardMaterial color="#7a5230" roughness={0.8} />
       </mesh>
+      <Html position={[0, 1.45, 0]} center distanceFactor={8} style={{ pointerEvents: 'none' }}>
+        <div ref={personaRef} style={{ fontSize: 20, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))', display: 'none' }} />
+      </Html>
     </group>
   )
 }

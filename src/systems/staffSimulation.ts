@@ -62,6 +62,13 @@ export function checkoutStaffing(fixtureId: string): { staffed: boolean; morale:
   return { staffed: false, morale: 0 }
 }
 
+/** Whether any security guard is currently on duty — consumed by
+ * customerSimulation's theft rolls. */
+export function isSecurityOnDuty(): boolean {
+  const hour = currentGameHour()
+  return Object.values(useStaff.getState().roster).some((m) => m.role === 'security' && isOnDuty(m.shift, hour))
+}
+
 function randomCooldown(): number {
   return IDLE_COOLDOWN_MIN + Math.random() * (IDLE_COOLDOWN_MAX - IDLE_COOLDOWN_MIN)
 }
@@ -155,6 +162,18 @@ function tickCashier(npc: LiveStaffNPC, member: StaffMember, snapshot: StoreSnap
   npc.pendingAction = false
 }
 
+function tickSecurity(npc: LiveStaffNPC, snapshot: StoreSnapshot) {
+  const floorCells = Object.values(snapshot.floors)
+  if (floorCells.length === 0) {
+    npc.cooldown = randomCooldown()
+    return
+  }
+  const target = floorCells[Math.floor(Math.random() * floorCells.length)]
+  routeEntityTo(npc, target, snapshot)
+  npc.targetFixtureId = null
+  npc.pendingAction = false
+}
+
 function returnToDepot(npc: LiveStaffNPC, snapshot: StoreSnapshot) {
   const depot = pickEntranceCell(snapshot.floors)
   npc.targetFixtureId = null
@@ -213,5 +232,6 @@ export function tickStaff(delta: number): void {
     if (npc.role === 'stocker') tickStocker(npc, snapshot)
     else if (npc.role === 'janitor') tickJanitor(npc, snapshot)
     else if (npc.role === 'cashier') tickCashier(npc, member, snapshot)
+    else if (npc.role === 'security') tickSecurity(npc, snapshot)
   }
 }

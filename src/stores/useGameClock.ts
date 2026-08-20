@@ -3,6 +3,8 @@ import { useFinance } from './useFinance'
 import { useCustomers } from './useCustomers'
 import { useStaff } from './useStaff'
 import { useStoreAtmosphere } from './useStoreAtmosphere'
+import { useReputation } from './useReputation'
+import { useMarketing } from './useMarketing'
 import { useStoreLayout } from './useStoreLayout'
 import { useInventory } from './useInventory'
 import type { StaffRole } from '../data/staffDefinitions'
@@ -33,11 +35,14 @@ export const useGameClock = create<GameClockState>((set, get) => ({
         stocker: Object.values(layout.fixtures).filter((f) => f.category === 'shelf' && shelfStock[f.id]?.productId).length,
         cashier: Object.values(layout.fixtures).filter((f) => f.category === 'checkout').length,
         janitor: Object.keys(layout.floors).length,
+        security: Object.keys(layout.floors).length,
       }
 
       useFinance.getState().endDay(day, useStaff.getState().totalDailyPayroll())
       useStaff.getState().applyDailyDrift(relevantCounts)
       useStoreAtmosphere.getState().decayDaily()
+      useReputation.getState().decayDaily()
+      useMarketing.getState().tickDaily()
       useCustomers.getState().resetDaily()
       day += 1
     }

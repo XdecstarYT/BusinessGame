@@ -1,8 +1,7 @@
-// Manager and Security are deliberately not offered yet — their real
-// mechanics (auto-run stores, loss prevention) don't exist until Phase 7
-// and Phase 4 respectively. A hire button with zero effect would be a
-// half-finished feature.
-export type StaffRole = 'stocker' | 'cashier' | 'janitor'
+// Manager is still deliberately not offered — its real mechanic (auto-run
+// stores) doesn't exist until Phase 7. Security is added now that theft
+// exists (Phase 4) to give it something real to do.
+export type StaffRole = 'stocker' | 'cashier' | 'janitor' | 'security'
 export type Shift = 'morning' | 'evening' | 'allday'
 
 export interface StaffRoleDefinition {
@@ -34,6 +33,13 @@ export const STAFF_ROLES: Record<StaffRole, StaffRoleDefinition> = {
     marketRate: 55,
     color: '#3ce08a',
     description: 'Keeps the store clean, which keeps customers shopping longer.',
+  },
+  security: {
+    role: 'security',
+    label: 'Security',
+    marketRate: 70,
+    color: '#e0423c',
+    description: 'On duty, sharply cuts the odds of a shoplifter getting away with it.',
   },
 }
 

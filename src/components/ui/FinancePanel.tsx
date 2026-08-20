@@ -10,6 +10,8 @@ export function FinancePanel({ onClose }: FinancePanelProps) {
   const cash = useFinance((s) => s.cash)
   const dailyRevenue = useFinance((s) => s.dailyRevenue)
   const dailyCogs = useFinance((s) => s.dailyCogs)
+  const dailyShrinkage = useFinance((s) => s.dailyShrinkage)
+  const dailyMarketing = useFinance((s) => s.dailyMarketing)
   const history = useFinance((s) => s.history)
   const payroll = useStaff((s) => s.totalDailyPayroll())
 
@@ -32,6 +34,8 @@ export function FinancePanel({ onClose }: FinancePanelProps) {
         <Row label="Gross profit (today)" value={`$${grossProfit.toFixed(2)}`} positive={grossProfit >= 0} />
         <Row label="Rent (due at close)" value={`$${DAILY_RENT.toFixed(2)}`} />
         <Row label="Payroll (due at close)" value={`$${payroll.toFixed(2)}`} />
+        <Row label="Shrinkage (theft, today)" value={`$${dailyShrinkage.toFixed(2)}`} positive={dailyShrinkage === 0} />
+        <Row label="Marketing (today)" value={`$${dailyMarketing.toFixed(2)}`} />
       </div>
 
       <div className="px-4 py-3 border-t border-white/10">

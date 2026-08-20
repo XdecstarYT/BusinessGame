@@ -1,12 +1,16 @@
 import { useMemo, useState } from 'react'
-import { PRODUCTS, PRODUCT_CATEGORIES, SHELF_CAPACITY, STOCKROOM_CAPACITY } from '../../data/products'
+import { PRODUCTS, PRODUCT_CATEGORIES, PRODUCT_MAP, SHELF_CAPACITY, STOCKROOM_CAPACITY } from '../../data/products'
 import { useFinance } from '../../stores/useFinance'
-import { useInventory } from '../../stores/useInventory'
+import { useInventory, getEffectivePrice } from '../../stores/useInventory'
+import { useGameClock } from '../../stores/useGameClock'
 import { useStoreLayout } from '../../stores/useStoreLayout'
 
 interface InventoryPanelProps {
   onClose: () => void
 }
+
+const PROMO_DISCOUNT = 20
+const PROMO_DURATION_DAYS = 3
 
 const rowBase = 'flex items-center gap-2 py-1.5 border-b border-white/10 last:border-b-0'
 const smallBtn =
@@ -16,10 +20,17 @@ export function InventoryPanel({ onClose }: InventoryPanelProps) {
   const cash = useFinance((s) => s.cash)
   const stockroom = useInventory((s) => s.stockroom)
   const shelfStock = useInventory((s) => s.shelfStock)
+  const priceOverrides = useInventory((s) => s.priceOverrides)
+  const promotions = useInventory((s) => s.promotions)
   const totalStockroomUnits = useInventory((s) => s.totalStockroomUnits())
   const orderProduct = useInventory((s) => s.orderProduct)
   const assignProduct = useInventory((s) => s.assignProduct)
   const restockShelf = useInventory((s) => s.restockShelf)
+  const adjustPrice = useInventory((s) => s.adjustPrice)
+  const resetPrice = useInventory((s) => s.resetPrice)
+  const startPromotion = useInventory((s) => s.startPromotion)
+  const clearPromotion = useInventory((s) => s.clearPromotion)
+  const currentDay = useGameClock((s) => s.day)
 
   const shelves = Object.values(useStoreLayout((s) => s.fixtures)).filter((f) => f.category === 'shelf')
 
@@ -70,29 +81,58 @@ export function InventoryPanel({ onClose }: InventoryPanelProps) {
         {filteredProducts.length === 0 && <div className="text-xs text-white/40 italic">No products match.</div>}
         {filteredProducts.map((product) => {
           const qty = stockroom[product.id] ?? 0
+          const overridden = product.id in priceOverrides
+          const promo = promotions[product.id]
+          const promoActive = !!promo && promo.expiresDay >= currentDay
+          const effectivePrice = getEffectivePrice(product.id, currentDay)
+
           return (
-            <div key={product.id} className={rowBase}>
-              <span className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: product.color }} />
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium truncate">{product.name}</div>
-                <div className="text-[10px] text-white/50">
-                  ${product.costPrice.toFixed(2)} cost · ${product.retailPrice.toFixed(2)} retail · {qty} in stock
+            <div key={product.id} className={rowBase + ' flex-col items-stretch gap-1'}>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: product.color }} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-medium truncate">{product.name}</div>
+                  <div className="text-[10px] text-white/50">
+                    ${product.costPrice.toFixed(2)} cost · {qty} in stock
+                  </div>
                 </div>
+                <button className={smallBtn} disabled={cash < product.costPrice * 10} onClick={() => orderProduct(product.id, 10)}>
+                  +10
+                </button>
+                <button className={smallBtn} disabled={cash < product.costPrice * 50} onClick={() => orderProduct(product.id, 50)}>
+                  +50
+                </button>
               </div>
-              <button
-                className={smallBtn}
-                disabled={cash < product.costPrice * 10}
-                onClick={() => orderProduct(product.id, 10)}
-              >
-                +10
-              </button>
-              <button
-                className={smallBtn}
-                disabled={cash < product.costPrice * 50}
-                onClick={() => orderProduct(product.id, 50)}
-              >
-                +50
-              </button>
+              <div className="flex items-center gap-1.5 text-[10px]">
+                <span className="text-white/50">Price:</span>
+                <button className={smallBtn} onClick={() => adjustPrice(product.id, -0.25)}>
+                  −
+                </button>
+                <span className={`w-14 text-center ${promoActive ? 'text-emerald-400' : overridden ? 'text-amber-300' : ''}`}>
+                  ${effectivePrice.toFixed(2)}
+                </span>
+                <button className={smallBtn} onClick={() => adjustPrice(product.id, 0.25)}>
+                  +
+                </button>
+                {overridden && (
+                  <button className={smallBtn} onClick={() => resetPrice(product.id)} title={`Base $${product.retailPrice.toFixed(2)}`}>
+                    Reset
+                  </button>
+                )}
+                <span className="flex-1" />
+                {promoActive ? (
+                  <button className={`${smallBtn} text-emerald-300`} onClick={() => clearPromotion(product.id)}>
+                    🏷️ -{promo.discountPercent}% (D{promo.expiresDay}) ✕
+                  </button>
+                ) : (
+                  <button
+                    className={smallBtn}
+                    onClick={() => startPromotion(product.id, PROMO_DISCOUNT, currentDay, PROMO_DURATION_DAYS)}
+                  >
+                    🏷️ Run -{PROMO_DISCOUNT}%/{PROMO_DURATION_DAYS}d
+                  </button>
+                )}
+              </div>
             </div>
           )
         })}
@@ -104,6 +144,7 @@ export function InventoryPanel({ onClose }: InventoryPanelProps) {
         {shelves.map((shelf) => {
           const stock = shelfStock[shelf.id]
           const fillRatio = stock ? stock.quantity / SHELF_CAPACITY : 0
+          const product = stock?.productId ? PRODUCT_MAP[stock.productId] : undefined
           return (
             <div key={shelf.id} className={rowBase + ' flex-col items-stretch gap-1'}>
               <div className="flex items-center gap-2">
@@ -144,6 +185,7 @@ export function InventoryPanel({ onClose }: InventoryPanelProps) {
               </div>
               <div className="text-[10px] text-white/40">
                 {stock?.quantity ?? 0} / {SHELF_CAPACITY} units
+                {product && ` · selling at $${getEffectivePrice(product.id, currentDay).toFixed(2)}`}
               </div>
             </div>
           )

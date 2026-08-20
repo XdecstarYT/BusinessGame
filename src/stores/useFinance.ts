@@ -9,10 +9,14 @@ interface FinanceState {
   cash: number
   dailyRevenue: number
   dailyCogs: number
+  dailyShrinkage: number
+  dailyMarketing: number
   history: DaySummary[]
 
   spend: (amount: number) => boolean
   recordSale: (revenue: number, cogs: number) => void
+  recordShrinkage: (cost: number) => void
+  recordMarketingSpend: (amount: number) => void
   endDay: (day: number, payroll: number) => void
 }
 
@@ -20,6 +24,8 @@ export const useFinance = create<FinanceState>((set, get) => ({
   cash: STARTING_CASH,
   dailyRevenue: 0,
   dailyCogs: 0,
+  dailyShrinkage: 0,
+  dailyMarketing: 0,
   history: [],
 
   spend: (amount) => {
@@ -38,13 +44,33 @@ export const useFinance = create<FinanceState>((set, get) => ({
     })
   },
 
+  recordShrinkage: (cost) => {
+    const state = get()
+    set({ dailyShrinkage: state.dailyShrinkage + cost })
+  },
+
+  recordMarketingSpend: (amount) => {
+    const state = get()
+    set({ dailyMarketing: state.dailyMarketing + amount })
+  },
+
   endDay: (day, payroll) => {
     const state = get()
-    const summary = computeDaySummary(day, state.dailyRevenue, state.dailyCogs, DAILY_RENT, payroll)
+    const summary = computeDaySummary({
+      day,
+      revenue: state.dailyRevenue,
+      cogs: state.dailyCogs,
+      rent: DAILY_RENT,
+      payroll,
+      shrinkage: state.dailyShrinkage,
+      marketing: state.dailyMarketing,
+    })
     set({
       cash: state.cash - DAILY_RENT - payroll,
       dailyRevenue: 0,
       dailyCogs: 0,
+      dailyShrinkage: 0,
+      dailyMarketing: 0,
       history: [...state.history, summary].slice(-MAX_HISTORY_DAYS),
     })
   },

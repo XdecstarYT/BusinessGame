@@ -35,7 +35,7 @@ export function moraleTarget(wage: number, marketRate: number): number {
   return clamp(BASE_MORALE_TARGET + ratio * WAGE_SENSITIVITY, 5, 100)
 }
 
-const IDEAL_RATIO: Record<StaffRole, number> = { stocker: 4, cashier: 1, janitor: 30 }
+const IDEAL_RATIO: Record<StaffRole, number> = { stocker: 4, cashier: 1, janitor: 30, security: 50 }
 const MAX_WORKLOAD_PENALTY = 25
 
 /** Extra morale-target penalty when a role is stretched thin — e.g. one
@@ -53,4 +53,9 @@ export function workloadPenalty(role: StaffRole, onDutyCount: number, relevantCo
  * drift rather than an instant snap, applied once per day. */
 export function driftMorale(current: number, target: number, step = 0.3): number {
   return clamp(current + (target - current) * step, 0, 100)
+}
+
+/** How much an on-duty security guard suppresses shoplifting attempts. */
+export function theftDeterrenceMultiplier(securityOnDuty: boolean): number {
+  return securityOnDuty ? 0.2 : 1
 }

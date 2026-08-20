@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import type { Group, Mesh, MeshStandardMaterial } from 'three'
 import { getLiveCustomers, MAX_CUSTOMERS } from '../../systems/customerSimulation'
+import { PERSONAS } from '../../data/personas'
 import { CustomerNPC } from './CustomerNPC'
 
 const ACCENT_PALETTE = ['#5b8fc7', '#c76b5b', '#5bc78f', '#c7a75b', '#8f5bc7', '#c75ba7', '#5bb0c7', '#a7c75b']
@@ -17,13 +18,16 @@ function accentColorForId(id: string): string {
  * so a busy store doesn't cause a re-render storm. Slot assignment is kept
  * stable per customer id so despawning one customer doesn't make another
  * jump to its old slot's transform. Because slots ARE reused across
- * different customers over a session, each customer's shirt color and
- * basket are driven imperatively too (color set once when a slot changes
- * hands, basket visibility toggled from their live cart every frame). */
+ * different customers over a session, each customer's shirt color, basket,
+ * and persona icon are driven imperatively too (set once when a slot
+ * changes hands, basket visibility toggled from their live cart every
+ * frame). The persona Html tag is hidden explicitly when a slot frees up —
+ * Html doesn't automatically follow a parent's `visible=false`. */
 export function CustomersLayer() {
   const groupRefs = useRef<(Group | null)[]>([])
   const accentRefs = useRef<(Mesh | null)[]>([])
   const basketRefs = useRef<(Mesh | null)[]>([])
+  const personaRefs = useRef<(HTMLDivElement | null)[]>([])
   const slotOf = useRef(new Map<string, number>())
   const freeSlots = useRef(Array.from({ length: MAX_CUSTOMERS }, (_, i) => i))
   const slotOwner = useRef<(string | null)[]>(new Array(MAX_CUSTOMERS).fill(null))
@@ -38,6 +42,8 @@ export function CustomersLayer() {
         freeSlots.current.push(slot)
         const mesh = groupRefs.current[slot]
         if (mesh) mesh.visible = false
+        const personaEl = personaRefs.current[slot]
+        if (personaEl) personaEl.style.display = 'none'
       }
     }
 
@@ -56,6 +62,12 @@ export function CustomersLayer() {
         const accentMesh = accentRefs.current[slot]
         const material = accentMesh?.material as MeshStandardMaterial | undefined
         if (material) material.color.set(accentColorForId(customer.id))
+        const personaEl = personaRefs.current[slot]
+        if (personaEl) {
+          personaEl.textContent = PERSONAS[customer.persona].icon
+          personaEl.title = PERSONAS[customer.persona].label
+          personaEl.style.display = 'block'
+        }
       }
 
       const basketMesh = basketRefs.current[slot]
@@ -83,6 +95,9 @@ export function CustomersLayer() {
             }}
             basketRef={(el) => {
               basketRefs.current[i] = el
+            }}
+            personaRef={(el) => {
+              personaRefs.current[i] = el
             }}
           />
         </group>

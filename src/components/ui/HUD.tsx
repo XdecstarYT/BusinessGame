@@ -4,12 +4,14 @@ import { useFinance } from '../../stores/useFinance'
 import { useGameClock, formatClock } from '../../stores/useGameClock'
 import { useCustomers } from '../../stores/useCustomers'
 import { useStoreAtmosphere } from '../../stores/useStoreAtmosphere'
+import { useReputation } from '../../stores/useReputation'
 import { BuildToolbar } from './BuildToolbar'
 import { InventoryPanel } from './InventoryPanel'
 import { FinancePanel } from './FinancePanel'
 import { StaffPanel } from './StaffPanel'
+import { MarketingPanel } from './MarketingPanel'
 
-type Panel = 'inventory' | 'finance' | 'staff' | null
+type Panel = 'inventory' | 'finance' | 'staff' | 'marketing' | null
 
 export function HUD() {
   const mode = useGameMode((s) => s.mode)
@@ -21,6 +23,7 @@ export function HUD() {
   const activeCustomers = useCustomers((s) => s.activeCount)
   const events = useCustomers((s) => s.events)
   const cleanliness = useStoreAtmosphere((s) => s.cleanliness)
+  const reputation = useReputation((s) => s.score)
 
   const [panel, setPanel] = useState<Panel>(null)
   const togglePanel = (p: Panel) => setPanel((current) => (current === p ? null : p))
@@ -48,41 +51,57 @@ export function HUD() {
         </button>
       </div>
 
-      <div className="pointer-events-auto absolute top-4 right-4 flex items-center gap-3 bg-black/70 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg text-white text-sm">
-        <span className="font-semibold text-emerald-400">${cash.toFixed(2)}</span>
-        <div className="w-px h-5 bg-white/20" />
-        <span className="text-white/70">
-          Day {day} · {clockLabel}
-        </span>
-        <div className="w-px h-5 bg-white/20" />
-        <span className="text-white/70">🧍 {activeCustomers}</span>
-        <div className="w-px h-5 bg-white/20" />
-        <span className={`text-white/70 ${cleanliness < 40 ? 'text-red-400' : ''}`}>🧹 {Math.round(cleanliness)}%</span>
-        <div className="w-px h-5 bg-white/20" />
-        <button
-          onClick={() => togglePanel('inventory')}
-          className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-            panel === 'inventory' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
-          }`}
-        >
-          📦 Inventory
-        </button>
-        <button
-          onClick={() => togglePanel('staff')}
-          className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-            panel === 'staff' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
-          }`}
-        >
-          👥 Staff
-        </button>
-        <button
-          onClick={() => togglePanel('finance')}
-          className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-            panel === 'finance' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
-          }`}
-        >
-          💰 Finance
-        </button>
+      <div className="pointer-events-auto absolute top-4 right-4 flex flex-col items-end gap-2">
+        <div className="flex items-center gap-3 bg-black/70 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg text-white text-sm">
+          <span className="font-semibold text-emerald-400">${cash.toFixed(2)}</span>
+          <div className="w-px h-5 bg-white/20" />
+          <span className="text-white/70">
+            Day {day} · {clockLabel}
+          </span>
+          <div className="w-px h-5 bg-white/20" />
+          <span className="text-white/70">🧍 {activeCustomers}</span>
+          <div className="w-px h-5 bg-white/20" />
+          <span className={`text-white/70 ${cleanliness < 40 ? 'text-red-400' : ''}`}>🧹 {Math.round(cleanliness)}%</span>
+          <div className="w-px h-5 bg-white/20" />
+          <span className={`text-white/70 ${reputation < 40 ? 'text-red-400' : ''}`} title="Reputation">
+            ⭐ {Math.round(reputation)}%
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-lg">
+          <button
+            onClick={() => togglePanel('inventory')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+              panel === 'inventory' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
+          >
+            📦 Inventory
+          </button>
+          <button
+            onClick={() => togglePanel('staff')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+              panel === 'staff' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
+          >
+            👥 Staff
+          </button>
+          <button
+            onClick={() => togglePanel('marketing')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+              panel === 'marketing' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
+          >
+            📣 Marketing
+          </button>
+          <button
+            onClick={() => togglePanel('finance')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+              panel === 'finance' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
+          >
+            💰 Finance
+          </button>
+        </div>
       </div>
 
       {events.length > 0 && (
@@ -97,6 +116,7 @@ export function HUD() {
 
       {panel === 'inventory' && <InventoryPanel onClose={() => setPanel(null)} />}
       {panel === 'staff' && <StaffPanel onClose={() => setPanel(null)} />}
+      {panel === 'marketing' && <MarketingPanel onClose={() => setPanel(null)} />}
       {panel === 'finance' && <FinancePanel onClose={() => setPanel(null)} />}
 
       {mode === 'walk' && (

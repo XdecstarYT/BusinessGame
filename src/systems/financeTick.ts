@@ -6,9 +6,22 @@ export interface DaySummary {
   cogs: number
   rent: number
   payroll: number
+  shrinkage: number
+  marketing: number
   profit: number
 }
 
-export function computeDaySummary(day: number, revenue: number, cogs: number, rent: number, payroll: number): DaySummary {
-  return { day, revenue, cogs, rent, payroll, profit: revenue - cogs - rent - payroll }
+export interface DayInputs {
+  day: number
+  revenue: number
+  cogs: number
+  rent: number
+  payroll: number
+  shrinkage: number
+  marketing: number
+}
+
+export function computeDaySummary(inputs: DayInputs): DaySummary {
+  const { day, revenue, cogs, rent, payroll, shrinkage, marketing } = inputs
+  return { day, revenue, cogs, rent, payroll, shrinkage, marketing, profit: revenue - cogs - rent - payroll - shrinkage - marketing }
 }
