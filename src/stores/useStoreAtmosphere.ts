@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { useStoreLayout } from './useStoreLayout'
 
 export type LightingMood = 'bright' | 'neutral' | 'warm' | 'dim'
 
@@ -49,6 +50,8 @@ export const useStoreAtmosphere = create<AtmosphereState>((set, get) => ({
   atmosphereScore: () => {
     const state = get()
     const comfort = LIGHTING_MOODS[state.lightingMood].comfort
-    return state.cleanliness / 100 * 0.5 + comfort * 0.5
+    const decorCount = Object.values(useStoreLayout.getState().fixtures).filter((f) => f.category === 'decoration').length
+    const decorBonus = Math.min(0.1, decorCount * 0.02)
+    return Math.min(1, (state.cleanliness / 100) * 0.45 + comfort * 0.45 + decorBonus)
   },
 }))

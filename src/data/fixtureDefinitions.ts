@@ -1,4 +1,4 @@
-export type FixtureCategory = 'shelf' | 'checkout' | 'stairs'
+export type FixtureCategory = 'shelf' | 'checkout' | 'stairs' | 'decoration'
 
 export interface FixtureDefinition {
   category: FixtureCategory
@@ -33,6 +33,14 @@ export const FIXTURE_DEFINITIONS: Record<FixtureCategory, FixtureDefinition> = {
     height: 3,
     cost: 300,
     color: '#6b5b4a',
+  },
+  decoration: {
+    category: 'decoration',
+    label: 'Potted Plant',
+    footprint: { width: 1, depth: 1 },
+    height: 1.0,
+    cost: 90,
+    color: '#3f8a4f',
   },
 }
 

@@ -50,6 +50,24 @@ export const SUPPLIERS: SupplierDefinition[] = [
     leadTimeDays: 1,
     description: 'Premium price for near-guaranteed, fast delivery.',
   },
+  {
+    id: 'graymarket-liquidators',
+    name: 'Graymarket Liquidators',
+    origin: 'imported',
+    priceMultiplier: 0.6,
+    reliability: 0.45,
+    leadTimeDays: 6,
+    description: 'Rock-bottom pricing, but deliveries are a coin flip and take forever.',
+  },
+  {
+    id: 'boutique-atelier',
+    name: 'Boutique Atelier Supply',
+    origin: 'local',
+    priceMultiplier: 1.35,
+    reliability: 0.97,
+    leadTimeDays: 2,
+    description: 'Curated small-batch sourcing — expensive, reliable, and a reputation boost by association.',
+  },
 ]
 
 export const SUPPLIER_MAP: Record<string, SupplierDefinition> = Object.fromEntries(SUPPLIERS.map((s) => [s.id, s]))

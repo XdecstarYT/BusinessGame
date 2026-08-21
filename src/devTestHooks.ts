@@ -20,6 +20,11 @@ import { useEvents } from './stores/useEvents'
 import { useAchievements } from './stores/useAchievements'
 import { useAnalytics } from './stores/useAnalytics'
 import { useGameMode } from './stores/useGameMode'
+import { useWeather } from './stores/useWeather'
+import { useComplaints } from './stores/useComplaints'
+import { useLoyalty } from './stores/useLoyalty'
+import { useGoals } from './stores/useGoals'
+import { useDayReport } from './stores/useDayReport'
 import { getLiveCustomers, getHeatGrid, resetLiveCustomers } from './systems/customerSimulation'
 import { getLiveStaff } from './systems/staffSimulation'
 import { PRODUCTS } from './data/products'
@@ -46,6 +51,11 @@ declare global {
       useAchievements: typeof useAchievements
       useAnalytics: typeof useAnalytics
       useGameMode: typeof useGameMode
+      useWeather: typeof useWeather
+      useComplaints: typeof useComplaints
+      useLoyalty: typeof useLoyalty
+      useGoals: typeof useGoals
+      useDayReport: typeof useDayReport
       getLiveCustomers: typeof getLiveCustomers
       getLiveStaff: typeof getLiveStaff
       getHeatGrid: typeof getHeatGrid
@@ -75,6 +85,11 @@ window.__retailEmpireDebug = {
   useAchievements,
   useAnalytics,
   useGameMode,
+  useWeather,
+  useComplaints,
+  useLoyalty,
+  useGoals,
+  useDayReport,
   getLiveCustomers,
   getLiveStaff,
   getHeatGrid,

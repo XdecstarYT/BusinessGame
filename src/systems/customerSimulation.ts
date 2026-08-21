@@ -19,6 +19,9 @@ import { useCompetitors } from '../stores/useCompetitors'
 import { demandMultiplierForDay } from './calendar'
 import { useEvents } from '../stores/useEvents'
 import { useAnalytics } from '../stores/useAnalytics'
+import { useWeather } from '../stores/useWeather'
+import { useLoyalty } from '../stores/useLoyalty'
+import { useComplaints } from '../stores/useComplaints'
 import { PRODUCT_MAP } from '../data/products'
 import type { WallSegment } from './pathfinding'
 import { cellKey, worldToCell, type Cell } from './grid'
@@ -258,7 +261,10 @@ function onCheckoutQueuePoll(customer: LiveCustomer, snapshot: StoreSnapshot) {
   customer.phase = 'checkingOut'
   const { staffed, morale } = checkoutStaffing(fixtureId)
   customer.dwellTimer = BASE_CHECKOUT_DWELL_SECONDS * checkoutDwellMultiplier(staffed, morale)
-  if (customer.queueWaitTime > LONG_QUEUE_SECONDS) useReputation.getState().hitFromLongQueue()
+  if (customer.queueWaitTime > LONG_QUEUE_SECONDS) {
+    useReputation.getState().hitFromLongQueue()
+    useComplaints.getState().recordComplaint('⏳ A customer complained about a slow checkout line')
+  }
 }
 
 function completeCheckout(customer: LiveCustomer, snapshot: StoreSnapshot) {
@@ -277,14 +283,23 @@ function completeCheckout(customer: LiveCustomer, snapshot: StoreSnapshot) {
     const itemCount = customer.cart.reduce((sum, line) => sum + line.quantity, 0)
     const label = customer.cart.length === 1 ? (PRODUCT_MAP[customer.cart[0].productId]?.name ?? 'item') : `${itemCount} items`
     useCustomers.getState().recordSaleEvent(`Sale: $${revenue.toFixed(2)} (${label})`)
+    useCustomers.getState().trackSale(revenue, label)
     spawnSalePop(new THREE.Vector3(customer.position.x, customer.position.y + 1.6, customer.position.z), revenue)
+    if (useStoreAtmosphere.getState().cleanliness < 40 && Math.random() < 0.3) {
+      useComplaints.getState().recordComplaint('🧹 A customer complained about how dirty the store is')
+    }
   }
 
   sendHome(customer, snapshot)
 }
 
 function sendHome(customer: LiveCustomer, snapshot: StoreSnapshot) {
-  if (customer.cart.length === 0) useReputation.getState().hitFromStockout()
+  if (customer.cart.length === 0) {
+    useReputation.getState().hitFromStockout()
+    if (customer.visitedShelves.size > 0 && Math.random() < 0.4) {
+      useComplaints.getState().recordComplaint("😠 A customer left empty-handed — couldn't find what they wanted")
+    }
+  }
   const entrance = pickEntranceCell(snapshot.floors)
   customer.phase = 'leaving'
   if (entrance && routeEntityTo(customer, entrance, snapshot)) return
@@ -345,8 +360,9 @@ export function tickCustomers(delta: number): void {
 function attractivenessSpawnFactor(): number {
   const atmosphere = useStoreAtmosphere.getState().atmosphereScore()
   const reputation = useReputation.getState().attractivenessFactor()
-  const marketingBoost = useMarketing.getState().attractivenessBoost()
+  const marketingBoost = useMarketing.getState().attractivenessBoost() + useLoyalty.getState().demandBoost()
   const competitorDrag = useCompetitors.getState().competitorPressure()
-  const demandMultiplier = demandMultiplierForDay(useGameClock.getState().day) * useEvents.getState().demandMultiplier()
+  const demandMultiplier =
+    demandMultiplierForDay(useGameClock.getState().day) * useEvents.getState().demandMultiplier() * useWeather.getState().demandMultiplier()
   return Math.max(0.15, (0.6 + (atmosphere * 0.5 + reputation * 0.5) * 0.7 + marketingBoost - competitorDrag) * demandMultiplier)
 }

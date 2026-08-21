@@ -22,6 +22,16 @@ export type IconName =
   | 'droplet'
   | 'person'
   | 'chevronDown'
+  | 'pause'
+  | 'camera'
+  | 'sun'
+  | 'cloud'
+  | 'rain'
+  | 'snow'
+  | 'storm'
+  | 'target'
+  | 'report'
+  | 'heart'
 
 const PATHS: Record<IconName, ReactElement> = {
   build: (
@@ -141,6 +151,54 @@ const PATHS: Record<IconName, ReactElement> = {
     </>
   ),
   chevronDown: <path d="M6 9l6 6 6-6" />,
+  pause: (
+    <>
+      <rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none" />
+      <rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  camera: (
+    <>
+      <rect x="3" y="7" width="18" height="12" rx="2" />
+      <path d="M8 7l1.5-2h5L16 7" />
+      <circle cx="12" cy="13" r="3.2" />
+    </>
+  ),
+  sun: (
+    <>
+      <circle cx="12" cy="12" r="4.2" />
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1" />
+    </>
+  ),
+  cloud: <path d="M7 18a4.5 4.5 0 0 1-.5-8.97A5.5 5.5 0 0 1 17.2 8.1 4 4 0 0 1 17 18H7Z" />,
+  rain: (
+    <>
+      <path d="M7 15a4.2 4.2 0 0 1-.5-8.37A5.2 5.2 0 0 1 16.6 5.4 3.8 3.8 0 0 1 16.4 15H7Z" />
+      <path d="M9 18l-1 2M13 18l-1 2M17 18l-1 2" />
+    </>
+  ),
+  snow: <path d="M12 3v18M4.5 7.5l15 9M19.5 7.5l-15 9" />,
+  storm: (
+    <>
+      <path d="M7 14a4.2 4.2 0 0 1-.5-8.37A5.2 5.2 0 0 1 16.6 4.4 3.8 3.8 0 0 1 16.4 14H7Z" />
+      <path d="M13 14l-3 5h3l-2 4" />
+    </>
+  ),
+  target: (
+    <>
+      <circle cx="12" cy="12" r="8" />
+      <circle cx="12" cy="12" r="4.2" />
+      <circle cx="12" cy="12" r="0.8" fill="currentColor" stroke="none" />
+    </>
+  ),
+  report: (
+    <>
+      <rect x="5" y="4" width="14" height="17" rx="2" />
+      <rect x="9" y="2.5" width="6" height="3" rx="1" />
+      <path d="M8 10h8M8 13h8M8 16h5" />
+    </>
+  ),
+  heart: <path d="M12 20s-7-4.35-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 5c-2.5 4.65-9.5 9-9.5 9Z" />,
 }
 
 interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {

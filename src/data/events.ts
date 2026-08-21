@@ -1,4 +1,17 @@
-export type EventId = 'health-inspection' | 'product-recall' | 'pr-incident' | 'break-in' | 'weather-disruption' | 'economic-boom' | 'economic-recession'
+export type EventId =
+  | 'health-inspection'
+  | 'product-recall'
+  | 'pr-incident'
+  | 'break-in'
+  | 'weather-disruption'
+  | 'economic-boom'
+  | 'economic-recession'
+  | 'viral-social-post'
+  | 'celebrity-visit'
+  | 'supplier-price-hike'
+  | 'staff-walkout-threat'
+  | 'copycat-competitor'
+  | 'community-fundraiser'
 
 export interface EventChoiceDefinition {
   id: 'A' | 'B'
@@ -70,6 +83,54 @@ export const EVENT_DEFINITIONS: Record<EventId, EventDefinition> = {
     prompt: 'A local economic downturn is squeezing household budgets.',
     choiceA: { id: 'A', label: 'Cut prices to stay competitive ($200)' },
     choiceB: { id: 'B', label: 'Hold steady and wait it out' },
+  },
+  'viral-social-post': {
+    id: 'viral-social-post',
+    title: 'Viral Moment',
+    icon: '📱',
+    prompt: 'A shopper posted a glowing video about your store and it just went viral.',
+    choiceA: { id: 'A', label: 'Boost the moment with paid promotion ($150)' },
+    choiceB: { id: 'B', label: 'Let it spread organically' },
+  },
+  'celebrity-visit': {
+    id: 'celebrity-visit',
+    title: 'Celebrity Sighting',
+    icon: '🌟',
+    prompt: 'A minor local celebrity is browsing your aisles right now.',
+    choiceA: { id: 'A', label: "Comp their order for the photo op ($60)" },
+    choiceB: { id: 'B', label: 'Treat them like any other customer' },
+  },
+  'supplier-price-hike': {
+    id: 'supplier-price-hike',
+    title: 'Supplier Price Hike',
+    icon: '📦',
+    prompt: 'Your main supplier just raised prices industry-wide.',
+    choiceA: { id: 'A', label: 'Absorb the cost to keep prices steady ($300)' },
+    choiceB: { id: 'B', label: 'Pass the cost on to customers' },
+  },
+  'staff-walkout-threat': {
+    id: 'staff-walkout-threat',
+    title: 'Staff Walkout Threat',
+    icon: '✊',
+    prompt: 'Your staff are grumbling about wages and threatening to walk off the job.',
+    choiceA: { id: 'A', label: 'Address it with an on-the-spot bonus ($250)' },
+    choiceB: { id: 'B', label: 'Brush it off' },
+  },
+  'copycat-competitor': {
+    id: 'copycat-competitor',
+    title: 'New Discount Chain Nearby',
+    icon: '🏪',
+    prompt: 'A new discount chain just opened two blocks away, undercutting your prices.',
+    choiceA: { id: 'A', label: 'Launch a price-match promise ($200)' },
+    choiceB: { id: 'B', label: 'Stay the course' },
+  },
+  'community-fundraiser': {
+    id: 'community-fundraiser',
+    title: 'Community Fundraiser',
+    icon: '🎗️',
+    prompt: 'A local school asked you to sponsor their fundraiser.',
+    choiceA: { id: 'A', label: 'Sponsor them ($150)' },
+    choiceB: { id: 'B', label: 'Politely decline' },
   },
 }
 

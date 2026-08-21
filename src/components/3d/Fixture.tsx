@@ -5,6 +5,7 @@ import type { Cell } from '../../systems/grid'
 import { CheckoutFixture } from './CheckoutFixture'
 import { ShelfFixture } from './ShelfFixture'
 import { StairsFixture } from './StairsFixture'
+import { DecorationFixture } from './DecorationFixture'
 
 interface FixtureProps {
   id: string
@@ -22,6 +23,7 @@ export function Fixture({ id, category, cell, rotation }: FixtureProps) {
       {category === 'shelf' && <ShelfFixture fixtureId={id} height={def.height} />}
       {category === 'checkout' && <CheckoutFixture height={def.height} />}
       {category === 'stairs' && <StairsFixture />}
+      {category === 'decoration' && <DecorationFixture height={def.height} />}
     </group>
   )
 }

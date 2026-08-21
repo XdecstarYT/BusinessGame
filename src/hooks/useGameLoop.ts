@@ -13,12 +13,16 @@ const MAX_DELTA_SECONDS = 0.25
 
 /** Drives the clock, staff, and customer simulations every frame. Only
  * mounted while the game is in Play phase (see SimulationDriver) — Build
- * phase is untimed, so nothing here runs then. Staff ticks before customers
- * so a cashier who just came on duty is reflected in the same frame's
- * checkout dwell calculations. */
+ * phase is untimed, so nothing here runs then. Respects the Play-phase
+ * pause/speed controls (useGameMode.paused/timeScale). Staff ticks before
+ * customers so a cashier who just came on duty is reflected in the same
+ * frame's checkout dwell calculations. */
 export function useGameLoop() {
   useFrame((_, delta) => {
-    const clamped = Math.min(delta, MAX_DELTA_SECONDS)
+    const { paused, timeScale } = useGameMode.getState()
+    if (paused) return
+
+    const clamped = Math.min(delta, MAX_DELTA_SECONDS) * timeScale
     const dayBefore = useGameClock.getState().day
     useGameClock.getState().advance(clamped)
 

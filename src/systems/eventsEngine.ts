@@ -70,6 +70,48 @@ function resolveEconomicRecession(choice: 'A' | 'B'): EventOutcome {
   return { message: 'Held steady through the downturn.', cashDelta: 0, reputationDelta: 0, demandEffect: { multiplier: 0.75, durationDays: 5 } }
 }
 
+function resolveViralSocialPost(choice: 'A' | 'B'): EventOutcome {
+  if (choice === 'A') {
+    return { message: 'Rode the viral wave with paid promotion — traffic surged.', cashDelta: -150, reputationDelta: 3, demandEffect: { multiplier: 1.5, durationDays: 4 } }
+  }
+  return { message: 'The moment spread on its own — a smaller but free bump.', cashDelta: 0, reputationDelta: 2, demandEffect: { multiplier: 1.2, durationDays: 4 } }
+}
+
+function resolveCelebrityVisit(choice: 'A' | 'B'): EventOutcome {
+  if (choice === 'A') {
+    return { message: 'The comped order paid off — great photos, great buzz.', cashDelta: -60, reputationDelta: 6, demandEffect: { multiplier: 1.3, durationDays: 3 } }
+  }
+  return { message: 'Business as usual — word still got around a little.', cashDelta: 0, reputationDelta: 1, demandEffect: { multiplier: 1.1, durationDays: 2 } }
+}
+
+function resolveSupplierPriceHike(choice: 'A' | 'B'): EventOutcome {
+  if (choice === 'A') {
+    return { message: 'Absorbed the price hike — customers never noticed.', cashDelta: -300, reputationDelta: 2, demandEffect: { multiplier: 1, durationDays: 1 } }
+  }
+  return { message: "Passed the cost along — some customers grumbled.", cashDelta: 0, reputationDelta: -3, demandEffect: { multiplier: 0.9, durationDays: 4 } }
+}
+
+function resolveStaffWalkoutThreat(choice: 'A' | 'B'): EventOutcome {
+  if (choice === 'A') {
+    return { message: 'The bonus smoothed things over — morale is back up.', cashDelta: -250, reputationDelta: 1, demandEffect: { multiplier: 1, durationDays: 1 } }
+  }
+  return { message: 'Brushed off — service quality slipped for a while.', cashDelta: 0, reputationDelta: -4, demandEffect: { multiplier: 0.88, durationDays: 4 } }
+}
+
+function resolveCopycatCompetitor(choice: 'A' | 'B'): EventOutcome {
+  if (choice === 'A') {
+    return { message: 'The price-match promise held customers steady.', cashDelta: -200, reputationDelta: 1, demandEffect: { multiplier: 1, durationDays: 1 } }
+  }
+  return { message: 'Stayed the course — lost some price-sensitive shoppers.', cashDelta: 0, reputationDelta: 0, demandEffect: { multiplier: 0.85, durationDays: 5 } }
+}
+
+function resolveCommunityFundraiser(choice: 'A' | 'B'): EventOutcome {
+  if (choice === 'A') {
+    return { message: 'Sponsoring the fundraiser earned real community goodwill.', cashDelta: -150, reputationDelta: 5, demandEffect: { multiplier: 1.1, durationDays: 3 } }
+  }
+  return { message: 'Declined politely — no real fallout, no goodwill either.', cashDelta: 0, reputationDelta: -1 }
+}
+
 export interface EventResolutionInputs {
   cleanliness: number
   stockroomValue: number
@@ -94,5 +136,17 @@ export function resolveEvent(id: EventId, choice: 'A' | 'B', inputs: EventResolu
       return resolveEconomicBoom(choice)
     case 'economic-recession':
       return resolveEconomicRecession(choice)
+    case 'viral-social-post':
+      return resolveViralSocialPost(choice)
+    case 'celebrity-visit':
+      return resolveCelebrityVisit(choice)
+    case 'supplier-price-hike':
+      return resolveSupplierPriceHike(choice)
+    case 'staff-walkout-threat':
+      return resolveStaffWalkoutThreat(choice)
+    case 'copycat-competitor':
+      return resolveCopycatCompetitor(choice)
+    case 'community-fundraiser':
+      return resolveCommunityFundraiser(choice)
   }
 }

@@ -12,6 +12,7 @@ const TOOL_OPTIONS: { tool: BuildTool; label: string; cost: number }[] = [
   { tool: 'shelf', label: FIXTURE_DEFINITIONS.shelf.label, cost: FIXTURE_DEFINITIONS.shelf.cost },
   { tool: 'checkout', label: FIXTURE_DEFINITIONS.checkout.label, cost: FIXTURE_DEFINITIONS.checkout.cost },
   { tool: 'stairs', label: FIXTURE_DEFINITIONS.stairs.label, cost: FIXTURE_DEFINITIONS.stairs.cost },
+  { tool: 'decoration', label: FIXTURE_DEFINITIONS.decoration.label, cost: FIXTURE_DEFINITIONS.decoration.cost },
 ]
 
 const btnBase = 'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border'

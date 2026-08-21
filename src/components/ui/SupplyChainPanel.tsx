@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { PRODUCTS, PRODUCT_CATEGORIES, PRODUCT_MAP } from '../../data/products'
+import { PRODUCTS, PRODUCT_CATEGORIES, PRODUCT_MAP, QUALITY_TIER_LABELS, type QualityTier } from '../../data/products'
 import { SUPPLIERS, SUPPLIER_MAP, RUSH_ORDER_MARKUP } from '../../data/suppliers'
 import { WAREHOUSE_TIERS } from '../../data/warehouse'
 import { contractUnitPrice } from '../../systems/supplyChainSim'
@@ -19,6 +19,12 @@ const QUICK_QUANTITIES = [50, 100, 200]
 const rowBase = 'flex flex-col gap-1.5 py-2 border-b border-white/[0.06] last:border-b-0'
 const smallBtn = btn.ghost
 const selectCls = themeSelectCls
+
+const TIER_COLOR: Record<QualityTier, string> = {
+  budget: 'text-white/35',
+  standard: 'text-white/50',
+  premium: 'text-amber-300/80',
+}
 
 export function SupplyChainPanel({ onClose }: SupplyChainPanelProps) {
   const cash = useFinance((s) => s.cash)
@@ -126,9 +132,13 @@ export function SupplyChainPanel({ onClose }: SupplyChainPanelProps) {
 
             return (
               <div key={product.id} className={rowBase}>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium">{product.name}</span>
-                  <span className="text-[10px] text-white/40">base ${product.costPrice.toFixed(2)}</span>
+                <div className="flex items-center justify-between" title={product.description}>
+                  <span className="text-xs font-medium">
+                    {product.name} <span className="text-white/40 font-normal">— {product.brand}</span>
+                  </span>
+                  <span className="text-[10px] text-white/40">
+                    base ${product.costPrice.toFixed(2)} · <span className={TIER_COLOR[product.qualityTier]}>{QUALITY_TIER_LABELS[product.qualityTier]}</span>
+                  </span>
                 </div>
 
                 {supplier ? (

@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { useGameMode } from '../../stores/useGameMode'
+import { useGameMode, type TimeScale } from '../../stores/useGameMode'
 import { useFinance } from '../../stores/useFinance'
 import { useGameClock, formatClock } from '../../stores/useGameClock'
 import { useCustomers } from '../../stores/useCustomers'
 import { useStoreAtmosphere } from '../../stores/useStoreAtmosphere'
 import { useReputation } from '../../stores/useReputation'
 import { useStoreLayout } from '../../stores/useStoreLayout'
+import { useWeather, WEATHER_DEFINITIONS } from '../../stores/useWeather'
+import { useGoals } from '../../stores/useGoals'
 import { BuildToolbar } from './BuildToolbar'
 import { InventoryPanel } from './InventoryPanel'
 import { FinancePanel } from './FinancePanel'
@@ -21,9 +23,14 @@ import { EventModal } from './EventModal'
 import { AchievementToast } from './AchievementToast'
 import { AchievementsPanel } from './AchievementsPanel'
 import { AnalyticsPanel } from './AnalyticsPanel'
+import { LiveTicker } from './LiveTicker'
+import { DayEndReportModal } from './DayEndReportModal'
+import { GoalToast } from './GoalToast'
 import { resetLiveCustomers } from '../../systems/customerSimulation'
 import { Icon, type IconName } from './icons'
 import { chromeBar, navBtn, dockBtn, statChip, divider, btn } from './theme'
+
+const SPEED_OPTIONS: TimeScale[] = [1, 2, 4]
 
 type Panel = 'inventory' | 'finance' | 'staff' | 'marketing' | 'supply' | 'corporate' | 'hq' | 'achievements' | 'analytics' | null
 
@@ -45,6 +52,12 @@ export function HUD() {
   const phase = useGameMode((s) => s.phase)
   const startDay = useGameMode((s) => s.startDay)
   const endDay = useGameMode((s) => s.endDay)
+  const cameraStyle = useGameMode((s) => s.cameraStyle)
+  const setCameraStyle = useGameMode((s) => s.setCameraStyle)
+  const timeScale = useGameMode((s) => s.timeScale)
+  const setTimeScale = useGameMode((s) => s.setTimeScale)
+  const paused = useGameMode((s) => s.paused)
+  const togglePaused = useGameMode((s) => s.togglePaused)
 
   const cash = useFinance((s) => s.cash)
   const day = useGameClock((s) => s.day)
@@ -54,62 +67,98 @@ export function HUD() {
   const cleanliness = useStoreAtmosphere((s) => s.cleanliness)
   const reputation = useReputation((s) => s.score)
   const walkLevel = useStoreLayout((s) => s.activeLevel)
+  const weather = useWeather((s) => s.current)
+  const weatherDef = WEATHER_DEFINITIONS[weather]
+  const goal = useGoals((s) => s.goal)
+  const goalProgress = useGoals((s) => s.progress)
+  const goalDaysIntoWeek = useGoals((s) => s.daysIntoWeek)
+
+  const handleEndDay = () => {
+    useGameClock.getState().forceRollover()
+    resetLiveCustomers()
+    endDay()
+  }
 
   const [panel, setPanel] = useState<Panel>(null)
   const togglePanel = (p: Panel) => setPanel((current) => (current === p ? null : p))
 
   return (
-    <div className="pointer-events-none absolute inset-0 select-none">
+    <div
+      className="pointer-events-none absolute inset-0 select-none"
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
       {/* Top-left: brand + phase controls */}
-      <div className={`${chromeBar} absolute top-4 left-4 gap-1 px-2.5 py-2`}>
-        <div className="flex items-center gap-2 pl-1 pr-2">
-          <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 text-[#04140d] shadow-[0_0_14px_-2px_rgba(52,211,153,0.7)]">
-            <Icon name="building" size={15} />
-          </span>
-          <span className="text-white font-extrabold tracking-wide text-[14px]">RETAIL EMPIRE</span>
+      <div className="absolute top-4 left-4 flex flex-col gap-2">
+        <div className={`${chromeBar} gap-1 px-2.5 py-2`}>
+          <div className="flex items-center gap-2 pl-1 pr-2">
+            <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 text-[#04140d] shadow-[0_0_14px_-2px_rgba(52,211,153,0.7)]">
+              <Icon name="building" size={15} />
+            </span>
+            <span className="text-white font-extrabold tracking-wide text-[14px]">RETAIL EMPIRE</span>
+          </div>
+          <div className={divider} />
+          {phase === 'build' ? (
+            <>
+              <button onClick={() => setMode('build')} className={navBtn(mode === 'build')}>
+                <Icon name="build" size={15} />
+                Build
+              </button>
+              <button onClick={() => setMode('walk')} className={navBtn(mode === 'walk')}>
+                <Icon name="walk" size={15} />
+                Walk
+              </button>
+              <button onClick={() => setMode('city')} className={navBtn(mode === 'city')}>
+                <Icon name="city" size={15} />
+                City
+              </button>
+              <div className={divider} />
+              <button onClick={startDay} className={`${btn.gold} flex items-center gap-1.5 ml-0.5`} title="Open the store and run a live day">
+                <Icon name="play" size={13} />
+                Start Day
+              </button>
+            </>
+          ) : (
+            <>
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[13px] font-semibold bg-red-500/15 border border-red-400/30 text-red-300">
+                <span className="relative flex w-2 h-2">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-400" />
+                </span>
+                Store Open
+              </span>
+              <button
+                onClick={handleEndDay}
+                className={`${btn.ghost} flex items-center gap-1.5 !py-1.5 ml-0.5`}
+                title="Close the store early and return to planning"
+              >
+                <Icon name="stop" size={12} />
+                End Day
+              </button>
+            </>
+          )}
         </div>
-        <div className={divider} />
-        {phase === 'build' ? (
-          <>
-            <button onClick={() => setMode('build')} className={navBtn(mode === 'build')}>
-              <Icon name="build" size={15} />
-              Build
-            </button>
-            <button onClick={() => setMode('walk')} className={navBtn(mode === 'walk')}>
-              <Icon name="walk" size={15} />
-              Walk
-            </button>
-            <button onClick={() => setMode('city')} className={navBtn(mode === 'city')}>
-              <Icon name="city" size={15} />
-              City
+
+        {phase === 'play' && (
+          <div className={`${chromeBar} gap-1.5 px-2.5 py-2`}>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/40 mr-0.5">Speed</span>
+            {SPEED_OPTIONS.map((s) => (
+              <button key={s} onClick={() => setTimeScale(s)} className={navBtn(timeScale === s && !paused)}>
+                {s}x
+              </button>
+            ))}
+            <button onClick={togglePaused} className={navBtn(paused)} title={paused ? 'Resume' : 'Pause'}>
+              <Icon name={paused ? 'play' : 'pause'} size={14} />
             </button>
             <div className={divider} />
-            <button onClick={startDay} className={`${btn.gold} flex items-center gap-1.5 ml-0.5`} title="Open the store and run a live day">
-              <Icon name="play" size={13} />
-              Start Day
+            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/40 mr-0.5">View</span>
+            <button onClick={() => setCameraStyle('freeroam')} className={navBtn(cameraStyle === 'freeroam')} title="Free-roam camera">
+              <Icon name="walk" size={14} />
             </button>
-          </>
-        ) : (
-          <>
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[13px] font-semibold bg-red-500/15 border border-red-400/30 text-red-300">
-              <span className="relative flex w-2 h-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-400" />
-              </span>
-              Store Open
-            </span>
-            <button
-              onClick={() => {
-                resetLiveCustomers()
-                endDay()
-              }}
-              className={`${btn.ghost} flex items-center gap-1.5 !py-1.5 ml-0.5`}
-              title="Close the store early and return to planning"
-            >
-              <Icon name="stop" size={12} />
-              End Day
+            <button onClick={() => setCameraStyle('cinematic')} className={navBtn(cameraStyle === 'cinematic')} title="Cinematic camera">
+              <Icon name="camera" size={14} />
             </button>
-          </>
+          </div>
         )}
       </div>
 
@@ -133,6 +182,10 @@ export function HUD() {
             </span>
           )}
           <div className={divider} />
+          <span className={statChip} title={weatherDef.label}>
+            <span className="text-sm leading-none">{weatherDef.icon}</span>
+          </span>
+          <div className={divider} />
           <span className={statChip} title="Customers in store">
             <Icon name="person" size={14} className="text-white/40" />
             <span className="text-[13px]">{activeCustomers}</span>
@@ -146,6 +199,13 @@ export function HUD() {
           <span className={statChip} title="Reputation">
             <Icon name="star" size={14} className={reputation < 40 ? 'text-red-400' : 'text-amber-300'} />
             <span className={`text-[13px] ${reputation < 40 ? 'text-red-400' : ''}`}>{Math.round(reputation)}%</span>
+          </span>
+          <div className={divider} />
+          <span className={statChip} title={goal.label}>
+            <Icon name="target" size={14} className="text-sky-300" />
+            <span className="text-[13px]">
+              {goal.kind === 'reputationFloor' ? `${goalDaysIntoWeek}/7d` : `${Math.round(goalProgress)}/${goal.target}`}
+            </span>
           </span>
         </div>
 
@@ -196,9 +256,12 @@ export function HUD() {
       )}
 
       {mode === 'build' && <BuildToolbar />}
+      {phase === 'play' && <LiveTicker />}
 
       <EventModal />
       <AchievementToast />
+      <GoalToast />
+      <DayEndReportModal />
     </div>
   )
 }

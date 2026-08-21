@@ -5,6 +5,9 @@ import { useInventory } from './useInventory'
 import { useCityMap } from './useCityMap'
 import { useCorporateHQ } from './useCorporateHQ'
 import { useCorporateFinance } from './useCorporateFinance'
+import { useLoyalty } from './useLoyalty'
+import { useGoals } from './useGoals'
+import { useWeather } from './useWeather'
 
 interface AchievementsState {
   /** Achievement id -> the day it unlocked. */
@@ -40,6 +43,10 @@ export const useAchievements = create<AchievementsState>((set, get) => ({
     markIfMet('second-location', useCityMap.getState().ownedPlotIds.length > 1)
     markIfMet('first-franchise', useCorporateHQ.getState().franchiseeCount > 0)
     markIfMet('public-offering', useCorporateFinance.getState().isPublic)
+    markIfMet('loyal-following', useLoyalty.getState().membersEnrolled >= 100)
+    markIfMet('goal-crusher', useGoals.getState().completedCount >= 3)
+    markIfMet('green-thumb', Object.values(layout.fixtures).some((f) => f.category === 'decoration'))
+    markIfMet('storm-survivor', day > 1 && useWeather.getState().current === 'stormy')
 
     if (newlyUnlocked.length > 0) {
       set({ unlocked, recentUnlocks: [...state.recentUnlocks, ...newlyUnlocked] })

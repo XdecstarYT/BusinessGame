@@ -116,7 +116,7 @@ export function BuildModeScene() {
         <GridFloor onPointerMove={onPointerMove} onPointerLeave={onPointerLeave} onPointerDown={handlePointerDown} />
         <Ghost
           target={target}
-          fixtureCategory={tool === 'shelf' || tool === 'checkout' || tool === 'stairs' ? tool : undefined}
+          fixtureCategory={tool === 'shelf' || tool === 'checkout' || tool === 'stairs' || tool === 'decoration' ? tool : undefined}
           rotation={rotation}
         />
       </group>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { PRODUCTS, PRODUCT_CATEGORIES, PRODUCT_MAP, SHELF_CAPACITY } from '../../data/products'
+import { PRODUCTS, PRODUCT_CATEGORIES, PRODUCT_MAP, SHELF_CAPACITY, QUALITY_TIER_LABELS, type QualityTier } from '../../data/products'
 import { useFinance } from '../../stores/useFinance'
 import { useInventory, getEffectivePrice } from '../../stores/useInventory'
 import { useGameClock } from '../../stores/useGameClock'
@@ -15,6 +15,12 @@ const PROMO_DISCOUNT = 20
 const PROMO_DURATION_DAYS = 3
 
 const smallBtn = btn.ghost
+
+const TIER_COLOR: Record<QualityTier, string> = {
+  budget: 'text-white/35',
+  standard: 'text-white/50',
+  premium: 'text-amber-300/80',
+}
 
 export function InventoryPanel({ onClose }: InventoryPanelProps) {
   const cash = useFinance((s) => s.cash)
@@ -75,10 +81,13 @@ export function InventoryPanel({ onClose }: InventoryPanelProps) {
             <div key={product.id} className={rowBase + ' flex-col items-stretch gap-1'}>
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: product.color }} />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-medium truncate">{product.name}</div>
+                <div className="flex-1 min-w-0" title={product.description}>
+                  <div className="text-xs font-medium truncate">
+                    {product.name} <span className="text-white/40 font-normal">— {product.brand}</span>
+                  </div>
                   <div className="text-[10px] text-white/50">
-                    ${product.costPrice.toFixed(2)} cost · {qty} in stock
+                    ${product.costPrice.toFixed(2)} cost · {qty} in stock ·{' '}
+                    <span className={TIER_COLOR[product.qualityTier]}>{QUALITY_TIER_LABELS[product.qualityTier]}</span>
                   </div>
                 </div>
                 <button className={smallBtn} disabled={cash < product.costPrice * 10} onClick={() => orderProduct(product.id, 10)}>
