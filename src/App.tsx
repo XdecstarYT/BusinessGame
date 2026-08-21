@@ -56,6 +56,7 @@ const WEBGPU_ERROR_PATTERN = /GPUTexture|GPUDevice|GPUValidationError|GPUAdapter
 
 export default function App() {
   const mode = useGameMode((s) => s.mode)
+  const phase = useGameMode((s) => s.phase)
 
   // Some browsers advertise `navigator.gpu` (so three.js's built-in
   // getFallback() never triggers) but throw at render time on API mismatches.
@@ -97,7 +98,7 @@ export default function App() {
           <fog attach="fog" args={['#c9d6e3', 40, 140]} />
           <ConfigureRenderer />
           <CameraModeRig mode={mode} />
-          <SimulationDriver />
+          {phase === 'play' && <SimulationDriver />}
           {mode === 'build' && <BuildModeScene />}
           {mode === 'walk' && <WalkModeScene />}
           {mode === 'city' && <CityMapScene />}

@@ -21,12 +21,16 @@ import { EventModal } from './EventModal'
 import { AchievementToast } from './AchievementToast'
 import { AchievementsPanel } from './AchievementsPanel'
 import { AnalyticsPanel } from './AnalyticsPanel'
+import { resetLiveCustomers } from '../../systems/customerSimulation'
 
 type Panel = 'inventory' | 'finance' | 'staff' | 'marketing' | 'supply' | 'corporate' | 'hq' | 'achievements' | 'analytics' | null
 
 export function HUD() {
   const mode = useGameMode((s) => s.mode)
   const setMode = useGameMode((s) => s.setMode)
+  const phase = useGameMode((s) => s.phase)
+  const startDay = useGameMode((s) => s.startDay)
+  const endDay = useGameMode((s) => s.endDay)
 
   const cash = useFinance((s) => s.cash)
   const day = useGameClock((s) => s.day)
@@ -45,30 +49,58 @@ export function HUD() {
       <div className="pointer-events-auto absolute top-4 left-4 flex items-center gap-3 bg-black/70 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg">
         <span className="text-white font-semibold tracking-wide text-sm">🏪 Retail Empire</span>
         <div className="w-px h-5 bg-white/20" />
-        <button
-          onClick={() => setMode('build')}
-          className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-            mode === 'build' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
-          }`}
-        >
-          🔨 Build
-        </button>
-        <button
-          onClick={() => setMode('walk')}
-          className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-            mode === 'walk' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
-          }`}
-        >
-          🚶 Walk
-        </button>
-        <button
-          onClick={() => setMode('city')}
-          className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-            mode === 'city' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
-          }`}
-        >
-          🗺️ City
-        </button>
+        {phase === 'build' ? (
+          <>
+            <button
+              onClick={() => setMode('build')}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                mode === 'build' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+              }`}
+            >
+              🔨 Build
+            </button>
+            <button
+              onClick={() => setMode('walk')}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                mode === 'walk' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+              }`}
+            >
+              🚶 Walk
+            </button>
+            <button
+              onClick={() => setMode('city')}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                mode === 'city' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+              }`}
+            >
+              🗺️ City
+            </button>
+            <div className="w-px h-5 bg-white/20" />
+            <button
+              onClick={startDay}
+              className="px-3 py-1 rounded-md text-sm font-semibold bg-amber-500 text-white hover:bg-amber-400 transition-colors"
+              title="Open the store and run a live day"
+            >
+              ▶ Start Day
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="flex items-center gap-1.5 px-3 py-1 rounded-md text-sm font-medium bg-red-500/90 text-white">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" /> Store Open
+            </span>
+            <button
+              onClick={() => {
+                resetLiveCustomers()
+                endDay()
+              }}
+              className="px-3 py-1 rounded-md text-sm font-semibold bg-white/10 text-white/80 hover:bg-white/20 transition-colors"
+              title="Close the store early and return to planning"
+            >
+              ⏹ End Day
+            </button>
+          </>
+        )}
       </div>
 
       <div className="pointer-events-auto absolute top-4 right-4 flex flex-col items-end gap-2">
@@ -93,7 +125,7 @@ export function HUD() {
           </span>
         </div>
 
-        {mode !== 'city' && (
+        {phase === 'build' && mode !== 'city' && (
         <div className="flex items-center gap-2 flex-wrap justify-end max-w-md bg-black/70 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-lg">
           <button
             onClick={() => togglePanel('inventory')}
@@ -181,21 +213,23 @@ export function HUD() {
         </div>
       )}
 
-      {mode !== 'city' && panel === 'inventory' && <InventoryPanel onClose={() => setPanel(null)} />}
-      {mode !== 'city' && panel === 'staff' && <StaffPanel onClose={() => setPanel(null)} />}
-      {mode !== 'city' && panel === 'marketing' && <MarketingPanel onClose={() => setPanel(null)} />}
-      {mode !== 'city' && panel === 'supply' && <SupplyChainPanel onClose={() => setPanel(null)} />}
-      {mode !== 'city' && panel === 'corporate' && <CorporateFinancePanel onClose={() => setPanel(null)} />}
-      {mode !== 'city' && panel === 'hq' && <HQPanel onClose={() => setPanel(null)} />}
-      {mode !== 'city' && panel === 'achievements' && <AchievementsPanel onClose={() => setPanel(null)} />}
-      {mode !== 'city' && panel === 'analytics' && <AnalyticsPanel onClose={() => setPanel(null)} />}
-      {mode !== 'city' && panel === 'finance' && <FinancePanel onClose={() => setPanel(null)} />}
-      {mode === 'city' && <CityMapPanel onClose={() => setMode('build')} />}
+      {phase === 'build' && mode !== 'city' && panel === 'inventory' && <InventoryPanel onClose={() => setPanel(null)} />}
+      {phase === 'build' && mode !== 'city' && panel === 'staff' && <StaffPanel onClose={() => setPanel(null)} />}
+      {phase === 'build' && mode !== 'city' && panel === 'marketing' && <MarketingPanel onClose={() => setPanel(null)} />}
+      {phase === 'build' && mode !== 'city' && panel === 'supply' && <SupplyChainPanel onClose={() => setPanel(null)} />}
+      {phase === 'build' && mode !== 'city' && panel === 'corporate' && <CorporateFinancePanel onClose={() => setPanel(null)} />}
+      {phase === 'build' && mode !== 'city' && panel === 'hq' && <HQPanel onClose={() => setPanel(null)} />}
+      {phase === 'build' && mode !== 'city' && panel === 'achievements' && <AchievementsPanel onClose={() => setPanel(null)} />}
+      {phase === 'build' && mode !== 'city' && panel === 'analytics' && <AnalyticsPanel onClose={() => setPanel(null)} />}
+      {phase === 'build' && mode !== 'city' && panel === 'finance' && <FinancePanel onClose={() => setPanel(null)} />}
+      {phase === 'build' && mode === 'city' && <CityMapPanel onClose={() => setMode('build')} />}
 
       {mode === 'walk' && (
         <>
           <div className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-xs bg-black/60 rounded-full px-3 py-1">
-            Click to look around · WASD to move · Esc to release cursor · walk onto stairs to change floors
+            {phase === 'play'
+              ? 'Click to look around · WASD to move · Esc to release cursor — store is open, simulation running'
+              : 'Click to look around · WASD to move · Esc to release cursor · walk onto stairs to change floors'}
           </div>
           <div className="pointer-events-none absolute bottom-6 right-4 text-white/80 text-xs bg-black/60 rounded-full px-3 py-1">
             🏢 {walkLevel === 0 ? 'Ground Floor' : `Floor ${walkLevel + 1}`}

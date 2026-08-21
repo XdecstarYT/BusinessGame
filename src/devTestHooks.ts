@@ -19,7 +19,8 @@ import { useCompetitors } from './stores/useCompetitors'
 import { useEvents } from './stores/useEvents'
 import { useAchievements } from './stores/useAchievements'
 import { useAnalytics } from './stores/useAnalytics'
-import { getLiveCustomers, getHeatGrid } from './systems/customerSimulation'
+import { useGameMode } from './stores/useGameMode'
+import { getLiveCustomers, getHeatGrid, resetLiveCustomers } from './systems/customerSimulation'
 import { getLiveStaff } from './systems/staffSimulation'
 import { PRODUCTS } from './data/products'
 import { STARTER_BLUEPRINTS } from './data/starterBlueprints'
@@ -44,9 +45,11 @@ declare global {
       useEvents: typeof useEvents
       useAchievements: typeof useAchievements
       useAnalytics: typeof useAnalytics
+      useGameMode: typeof useGameMode
       getLiveCustomers: typeof getLiveCustomers
       getLiveStaff: typeof getLiveStaff
       getHeatGrid: typeof getHeatGrid
+      resetLiveCustomers: typeof resetLiveCustomers
       PRODUCTS: typeof PRODUCTS
       STARTER_BLUEPRINTS: typeof STARTER_BLUEPRINTS
     }
@@ -71,9 +74,11 @@ window.__retailEmpireDebug = {
   useEvents,
   useAchievements,
   useAnalytics,
+  useGameMode,
   getLiveCustomers,
   getLiveStaff,
   getHeatGrid,
+  resetLiveCustomers,
   PRODUCTS,
   STARTER_BLUEPRINTS,
 }

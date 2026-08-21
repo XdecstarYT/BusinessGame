@@ -85,6 +85,15 @@ export function getLiveCustomers(): readonly LiveCustomer[] {
   return customers
 }
 
+/** Clears out every live customer — called when the store closes for the
+ * day (Play → Build phase transition) so Build phase presents a clean,
+ * empty store rather than shoppers frozen mid-aisle. */
+export function resetLiveCustomers(): void {
+  customers = []
+  occupiedCheckouts.clear()
+  useCustomers.getState().setActiveCount(0)
+}
+
 // Traffic heatmap — time-weighted foot-traffic per grid cell, decaying so it
 // reflects recent patterns rather than accumulating forever. Outside Zustand
 // like everything else per-frame here; HeatmapOverlay reads it directly via
