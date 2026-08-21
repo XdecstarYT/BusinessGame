@@ -16,9 +16,13 @@ import { useSupplyChain } from './stores/useSupplyChain'
 import { useCorporateFinance } from './stores/useCorporateFinance'
 import { useCorporateHQ } from './stores/useCorporateHQ'
 import { useCompetitors } from './stores/useCompetitors'
-import { getLiveCustomers } from './systems/customerSimulation'
+import { useEvents } from './stores/useEvents'
+import { useAchievements } from './stores/useAchievements'
+import { useAnalytics } from './stores/useAnalytics'
+import { getLiveCustomers, getHeatGrid } from './systems/customerSimulation'
 import { getLiveStaff } from './systems/staffSimulation'
 import { PRODUCTS } from './data/products'
+import { STARTER_BLUEPRINTS } from './data/starterBlueprints'
 
 declare global {
   interface Window {
@@ -37,9 +41,14 @@ declare global {
       useCorporateFinance: typeof useCorporateFinance
       useCorporateHQ: typeof useCorporateHQ
       useCompetitors: typeof useCompetitors
+      useEvents: typeof useEvents
+      useAchievements: typeof useAchievements
+      useAnalytics: typeof useAnalytics
       getLiveCustomers: typeof getLiveCustomers
       getLiveStaff: typeof getLiveStaff
+      getHeatGrid: typeof getHeatGrid
       PRODUCTS: typeof PRODUCTS
+      STARTER_BLUEPRINTS: typeof STARTER_BLUEPRINTS
     }
   }
 }
@@ -59,7 +68,12 @@ window.__retailEmpireDebug = {
   useCorporateFinance,
   useCorporateHQ,
   useCompetitors,
+  useEvents,
+  useAchievements,
+  useAnalytics,
   getLiveCustomers,
   getLiveStaff,
+  getHeatGrid,
   PRODUCTS,
+  STARTER_BLUEPRINTS,
 }

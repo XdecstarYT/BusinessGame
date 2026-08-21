@@ -67,7 +67,7 @@ export function FinancePanel({ onClose }: FinancePanelProps) {
                   labelStyle={{ color: 'rgba(255,255,255,0.7)' }}
                   formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Profit']}
                 />
-                <Bar dataKey="profit" radius={[3, 3, 0, 0]}>
+                <Bar dataKey="profit" radius={[3, 3, 0, 0]} isAnimationActive={false}>
                   {chartData.map((d, i) => (
                     <Cell key={i} fill={d.profit >= 0 ? '#34d399' : '#f87171'} />
                   ))}

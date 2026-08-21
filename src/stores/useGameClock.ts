@@ -11,6 +11,8 @@ import { useSupplyChain } from './useSupplyChain'
 import { useCorporateFinance } from './useCorporateFinance'
 import { useCorporateHQ } from './useCorporateHQ'
 import { useCompetitors } from './useCompetitors'
+import { useEvents } from './useEvents'
+import { useAchievements } from './useAchievements'
 import type { StaffRole } from '../data/staffDefinitions'
 
 export const DAY_LENGTH_SECONDS = 120
@@ -55,6 +57,8 @@ export const useGameClock = create<GameClockState>((set, get) => ({
       useCorporateFinance.getState().tickDaily(day)
       useCorporateHQ.getState().tickDaily()
       useCompetitors.getState().tickDaily()
+      useEvents.getState().tickDaily(day)
+      useAchievements.getState().checkAll(day)
     }
 
     set({ day, dayProgress: progress })

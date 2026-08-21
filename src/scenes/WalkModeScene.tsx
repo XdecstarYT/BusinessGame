@@ -3,6 +3,7 @@ import { Physics, RigidBody } from '@react-three/rapier'
 import { CustomersLayer } from '../components/3d/CustomersLayer'
 import { DustMotes } from '../components/3d/DustMotes'
 import { Ground } from '../components/3d/Ground'
+import { HeatmapOverlay } from '../components/3d/HeatmapOverlay'
 import { LayoutRenderer } from '../components/3d/LayoutRenderer'
 import { Player } from '../components/3d/Player'
 import { LODTestProps } from '../components/3d/LODTestProps'
@@ -38,6 +39,7 @@ export function WalkModeScene() {
           </group>
         ))}
       </Physics>
+      <HeatmapOverlay />
       <CustomersLayer />
       <StaffLayer />
       <SalePopsLayer />

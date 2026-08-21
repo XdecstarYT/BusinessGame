@@ -5,6 +5,7 @@ import { CustomersLayer } from '../components/3d/CustomersLayer'
 import { DustMotes } from '../components/3d/DustMotes'
 import { GridFloor } from '../components/3d/GridFloor'
 import { Ground } from '../components/3d/Ground'
+import { HeatmapOverlay } from '../components/3d/HeatmapOverlay'
 import { LayoutRenderer } from '../components/3d/LayoutRenderer'
 import { Ghost } from '../components/3d/Ghost'
 import { LODTestProps } from '../components/3d/LODTestProps'
@@ -103,6 +104,7 @@ export function BuildModeScene() {
         maxPolarAngle={Math.PI / 2.15}
       />
       <Ground />
+      <HeatmapOverlay />
 
       {Array.from({ length: maxLevel + 1 }, (_, level) => (
         <group key={level} position={[0, level * LEVEL_HEIGHT, 0]}>

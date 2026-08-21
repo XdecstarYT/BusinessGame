@@ -3,6 +3,7 @@ import { useBuildTool, type BuildTool } from '../../stores/useBuildTool'
 import { useStoreLayout } from '../../stores/useStoreLayout'
 import { FIXTURE_DEFINITIONS, FLOOR_COST, WALL_COST } from '../../data/fixtureDefinitions'
 import { exportBlueprintToJSON, importBlueprintFromJSON, loadFromSlot, saveToSlot } from '../../hooks/useSaveGame'
+import { STARTER_BLUEPRINTS } from '../../data/starterBlueprints'
 
 const TOOL_OPTIONS: { tool: BuildTool; label: string; cost: number }[] = [
   { tool: 'floor', label: 'Floor', cost: FLOOR_COST },
@@ -192,6 +193,29 @@ export function BuildToolbar() {
           Import
         </button>
         <input ref={fileInputRef} type="file" accept="application/json" onChange={handleImportFile} className="hidden" />
+
+        <div className="w-px h-6 bg-white/20 mx-1" />
+
+        <select
+          value=""
+          onChange={(e) => {
+            const template = STARTER_BLUEPRINTS.find((b) => b.name === e.target.value)
+            if (template && confirm(`Load starter template "${template.name}"? This replaces your current layout.`)) {
+              loadBlueprint(template)
+              flash(`Loaded "${template.name}"`)
+            }
+          }}
+          className="bg-white/10 border border-white/10 rounded-md text-sm px-2 py-1.5 text-white/80"
+        >
+          <option value="" disabled>
+            Starter templates…
+          </option>
+          {STARTER_BLUEPRINTS.map((b) => (
+            <option key={b.name} value={b.name} className="text-black">
+              {b.name}
+            </option>
+          ))}
+        </select>
 
         <div className="w-px h-6 bg-white/20 mx-1" />
 

@@ -11,6 +11,9 @@ interface ReputationState {
   hitFromStockout: () => void
   hitFromLongQueue: () => void
   hitFromShareholderPressure: () => void
+  /** Generic delta for external systems (random events) whose magnitude is
+   * computed elsewhere rather than fitting one of the named reasons above. */
+  applyDelta: (amount: number) => void
   decayDaily: () => void
   /** 0..1 factor combined with atmosphere to drive how often customers show up. */
   attractivenessFactor: () => number
@@ -29,6 +32,7 @@ export const useReputation = create<ReputationState>((set, get) => ({
   /** A losing quarter once public draws public scrutiny — light-touch by
    * design, per the spec's no-hard-fail-state philosophy. */
   hitFromShareholderPressure: () => set((s) => ({ score: clamp(s.score - 2) })),
+  applyDelta: (amount) => set((s) => ({ score: clamp(s.score + amount) })),
 
   decayDaily: () => set((s) => ({ score: clamp(s.score + (BASELINE - s.score) * DAILY_PULL_TO_BASELINE) })),
 

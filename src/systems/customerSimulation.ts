@@ -16,9 +16,12 @@ import { useMarketing } from '../stores/useMarketing'
 import { useCorporateFinance } from '../stores/useCorporateFinance'
 import { INSURANCE_REIMBURSEMENT_RATE } from '../data/finance'
 import { useCompetitors } from '../stores/useCompetitors'
+import { demandMultiplierForDay } from './calendar'
+import { useEvents } from '../stores/useEvents'
+import { useAnalytics } from '../stores/useAnalytics'
 import { PRODUCT_MAP } from '../data/products'
 import type { WallSegment } from './pathfinding'
-import type { Cell } from './grid'
+import { cellKey, worldToCell, type Cell } from './grid'
 import { cellToVec, moveAlongPath, routeEntityTo } from './movement'
 import { checkoutStaffing, isSecurityOnDuty } from './staffSimulation'
 import { checkoutDwellMultiplier, theftDeterrenceMultiplier } from './staffAI'
@@ -80,6 +83,32 @@ function randomSpawnInterval(): number {
 
 export function getLiveCustomers(): readonly LiveCustomer[] {
   return customers
+}
+
+// Traffic heatmap — time-weighted foot-traffic per grid cell, decaying so it
+// reflects recent patterns rather than accumulating forever. Outside Zustand
+// like everything else per-frame here; HeatmapOverlay reads it directly via
+// getHeatGrid() in its own render loop rather than subscribing to a store.
+const HEAT_DECAY_PER_SECOND = 0.15
+const HEAT_MAX = 20
+const heatGrid = new Map<string, number>()
+
+function decayHeatGrid(delta: number) {
+  const factor = Math.max(0, 1 - HEAT_DECAY_PER_SECOND * delta)
+  for (const [key, value] of heatGrid) {
+    const next = value * factor
+    if (next < 0.01) heatGrid.delete(key)
+    else heatGrid.set(key, next)
+  }
+}
+
+function addHeat(cell: Cell, amount: number) {
+  const key = cellKey(cell)
+  heatGrid.set(key, Math.min(HEAT_MAX, (heatGrid.get(key) ?? 0) + amount))
+}
+
+export function getHeatGrid(): ReadonlyMap<string, number> {
+  return heatGrid
 }
 
 function toShoppable(fixtures: Record<string, PlacedFixture>): ShoppableFixture[] {
@@ -229,6 +258,11 @@ function completeCheckout(customer: LiveCustomer, snapshot: StoreSnapshot) {
   const { revenue, cogs } = cartTotal(customer.cart, priceOfProduct)
   if (revenue > 0) {
     useFinance.getState().recordSale(revenue, cogs)
+    for (const line of customer.cart) {
+      const product = PRODUCT_MAP[line.productId]
+      if (!product) continue
+      useAnalytics.getState().recordCategoryRevenue(product.category, priceOfProduct(line.productId) * line.quantity)
+    }
     useStoreAtmosphere.getState().dirtyFromSale()
     useReputation.getState().boostFromSale()
     const itemCount = customer.cart.reduce((sum, line) => sum + line.quantity, 0)
@@ -262,10 +296,13 @@ export function tickCustomers(delta: number): void {
     if (spawnEligible(fixtures, floors)) trySpawn(floors, walls, fixtures)
   }
 
+  decayHeatGrid(delta)
+
   const remaining: LiveCustomer[] = []
 
   for (const customer of customers) {
     if (customer.phase === 'queueing') customer.queueWaitTime += delta
+    addHeat(worldToCell(customer.position.x, customer.position.z), delta)
 
     if (customer.dwellTimer > 0) {
       customer.dwellTimer -= delta
@@ -301,5 +338,6 @@ function attractivenessSpawnFactor(): number {
   const reputation = useReputation.getState().attractivenessFactor()
   const marketingBoost = useMarketing.getState().attractivenessBoost()
   const competitorDrag = useCompetitors.getState().competitorPressure()
-  return Math.max(0.15, 0.6 + (atmosphere * 0.5 + reputation * 0.5) * 0.7 + marketingBoost - competitorDrag)
+  const demandMultiplier = demandMultiplierForDay(useGameClock.getState().day) * useEvents.getState().demandMultiplier()
+  return Math.max(0.15, (0.6 + (atmosphere * 0.5 + reputation * 0.5) * 0.7 + marketingBoost - competitorDrag) * demandMultiplier)
 }

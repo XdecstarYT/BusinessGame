@@ -15,8 +15,14 @@ import { CityMapPanel } from './CityMapPanel'
 import { SupplyChainPanel } from './SupplyChainPanel'
 import { CorporateFinancePanel } from './CorporateFinancePanel'
 import { HQPanel } from './HQPanel'
+import { dayOfWeekLabel, seasonForDay, activeHoliday } from '../../systems/calendar'
+import { SEASON_LABELS } from '../../data/calendar'
+import { EventModal } from './EventModal'
+import { AchievementToast } from './AchievementToast'
+import { AchievementsPanel } from './AchievementsPanel'
+import { AnalyticsPanel } from './AnalyticsPanel'
 
-type Panel = 'inventory' | 'finance' | 'staff' | 'marketing' | 'supply' | 'corporate' | 'hq' | null
+type Panel = 'inventory' | 'finance' | 'staff' | 'marketing' | 'supply' | 'corporate' | 'hq' | 'achievements' | 'analytics' | null
 
 export function HUD() {
   const mode = useGameMode((s) => s.mode)
@@ -66,12 +72,17 @@ export function HUD() {
       </div>
 
       <div className="pointer-events-auto absolute top-4 right-4 flex flex-col items-end gap-2">
-        <div className="flex items-center gap-3 bg-black/70 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg text-white text-sm">
+        <div className="flex items-center gap-3 flex-wrap justify-end max-w-lg bg-black/70 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg text-white text-sm">
           <span className="font-semibold text-emerald-400">${cash.toFixed(2)}</span>
           <div className="w-px h-5 bg-white/20" />
-          <span className="text-white/70">
-            Day {day} · {clockLabel}
+          <span className="text-white/70" title={SEASON_LABELS[seasonForDay(day)].label}>
+            {dayOfWeekLabel(day)} D{day} · {clockLabel} {SEASON_LABELS[seasonForDay(day)].icon}
           </span>
+          {activeHoliday(day) && (
+            <span className="text-amber-300 text-xs" title={activeHoliday(day)!.label}>
+              {activeHoliday(day)!.icon} {activeHoliday(day)!.label}
+            </span>
+          )}
           <div className="w-px h-5 bg-white/20" />
           <span className="text-white/70">🧍 {activeCustomers}</span>
           <div className="w-px h-5 bg-white/20" />
@@ -133,6 +144,22 @@ export function HUD() {
             🏢 HQ
           </button>
           <button
+            onClick={() => togglePanel('achievements')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+              panel === 'achievements' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
+          >
+            🏆 Achievements
+          </button>
+          <button
+            onClick={() => togglePanel('analytics')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+              panel === 'analytics' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
+          >
+            📊 Analytics
+          </button>
+          <button
             onClick={() => togglePanel('finance')}
             className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
               panel === 'finance' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
@@ -160,6 +187,8 @@ export function HUD() {
       {mode !== 'city' && panel === 'supply' && <SupplyChainPanel onClose={() => setPanel(null)} />}
       {mode !== 'city' && panel === 'corporate' && <CorporateFinancePanel onClose={() => setPanel(null)} />}
       {mode !== 'city' && panel === 'hq' && <HQPanel onClose={() => setPanel(null)} />}
+      {mode !== 'city' && panel === 'achievements' && <AchievementsPanel onClose={() => setPanel(null)} />}
+      {mode !== 'city' && panel === 'analytics' && <AnalyticsPanel onClose={() => setPanel(null)} />}
       {mode !== 'city' && panel === 'finance' && <FinancePanel onClose={() => setPanel(null)} />}
       {mode === 'city' && <CityMapPanel onClose={() => setMode('build')} />}
 
@@ -175,6 +204,9 @@ export function HUD() {
       )}
 
       {mode === 'build' && <BuildToolbar />}
+
+      <EventModal />
+      <AchievementToast />
     </div>
   )
 }
