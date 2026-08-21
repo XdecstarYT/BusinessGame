@@ -26,7 +26,9 @@ import { AnalyticsPanel } from './AnalyticsPanel'
 import { LiveTicker } from './LiveTicker'
 import { DayEndReportModal } from './DayEndReportModal'
 import { GoalToast } from './GoalToast'
+import { TouchControls } from './TouchControls'
 import { resetLiveCustomers } from '../../systems/customerSimulation'
+import { isTouchDevice } from '../../systems/touchInput'
 import { Icon, type IconName } from './icons'
 import { chromeBar, navBtn, dockBtn, statChip, divider, btn } from './theme'
 
@@ -81,6 +83,7 @@ export function HUD() {
 
   const [panel, setPanel] = useState<Panel>(null)
   const togglePanel = (p: Panel) => setPanel((current) => (current === p ? null : p))
+  const [isTouch] = useState(() => isTouchDevice())
 
   return (
     <div
@@ -88,9 +91,11 @@ export function HUD() {
       onClick={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
     >
+      {mode === 'walk' && isTouch && <TouchControls />}
+
       {/* Top-left: brand + phase controls */}
-      <div className="absolute top-4 left-4 flex flex-col gap-2">
-        <div className={`${chromeBar} gap-1 px-2.5 py-2`}>
+      <div className="absolute top-4 left-4 flex flex-col gap-2 max-w-[min(30rem,46vw)]">
+        <div className={`${chromeBar} flex-wrap gap-1 px-2.5 py-2`}>
           <div className="flex items-center gap-2 pl-1 pr-2">
             <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 text-[#04140d] shadow-[0_0_14px_-2px_rgba(52,211,153,0.7)]">
               <Icon name="building" size={15} />
@@ -140,7 +145,7 @@ export function HUD() {
         </div>
 
         {phase === 'play' && (
-          <div className={`${chromeBar} gap-1.5 px-2.5 py-2`}>
+          <div className={`${chromeBar} flex-wrap gap-1.5 px-2.5 py-2`}>
             <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/40 mr-0.5">Speed</span>
             {SPEED_OPTIONS.map((s) => (
               <button key={s} onClick={() => setTimeScale(s)} className={navBtn(timeScale === s && !paused)}>
@@ -163,8 +168,8 @@ export function HUD() {
       </div>
 
       {/* Top-right: live stat readout + panel dock */}
-      <div className="pointer-events-auto absolute top-4 right-4 flex flex-col items-end gap-2">
-        <div className={`${chromeBar} gap-3 flex-wrap justify-end max-w-lg px-4 py-2 text-sm`}>
+      <div className="pointer-events-auto absolute top-4 right-4 flex flex-col items-end gap-2 max-w-[min(32rem,46vw)]">
+        <div className={`${chromeBar} gap-3 flex-wrap justify-end px-4 py-2 text-sm`}>
           <span className="flex items-center gap-1.5">
             <Icon name="dollar" size={15} className="text-emerald-400" />
             <span className="font-extrabold text-emerald-400 text-base tracking-tight">${cash.toFixed(2)}</span>
@@ -210,7 +215,7 @@ export function HUD() {
         </div>
 
         {phase === 'build' && mode !== 'city' && (
-          <div className={`${chromeBar} gap-1 px-2 py-1.5`}>
+          <div className={`${chromeBar} flex-wrap justify-end gap-1 px-2 py-1.5`}>
             {PANEL_DOCK.map(({ key, label, icon }) => (
               <button key={key} onClick={() => togglePanel(key)} className={dockBtn(panel === key)} title={label}>
                 <Icon name={icon} size={16} />
@@ -244,9 +249,13 @@ export function HUD() {
       {mode === 'walk' && (
         <>
           <div className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-xs bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/10">
-            {phase === 'play'
-              ? 'Click to look around · WASD to move · Esc to release cursor — store is open, simulation running'
-              : 'Click to look around · WASD to move · Esc to release cursor · walk onto stairs to change floors'}
+            {isTouch
+              ? phase === 'play'
+                ? 'Joystick to move · drag right side to look — store is open, simulation running'
+                : 'Joystick to move · drag right side to look · walk onto stairs to change floors'
+              : phase === 'play'
+                ? 'Click to look around · WASD to move · Esc to release cursor — store is open, simulation running'
+                : 'Click to look around · WASD to move · Esc to release cursor · walk onto stairs to change floors'}
           </div>
           <div className="pointer-events-none absolute bottom-6 right-4 flex items-center gap-1.5 text-white/80 text-xs bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/10">
             <Icon name="building" size={12} className="text-white/50" />

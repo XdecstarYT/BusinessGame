@@ -1,10 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { PointerLockControls } from '@react-three/drei'
 import { RigidBody, CapsuleCollider, type RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 import { LEVEL_HEIGHT, worldToCell } from '../../systems/grid'
 import { useStoreLayout } from '../../stores/useStoreLayout'
+import { consumeLookDelta, getJoystick, isTouchDevice } from '../../systems/touchInput'
 
 const SPEED = 4.2
 const EYE_HEIGHT = 1.6
@@ -16,6 +17,8 @@ const BOB_SWAY_AMPLITUDE = 0.02
 /** Cooldown after using a staircase before it can trigger again, so
  * standing near the landing cell doesn't bounce the player up and down. */
 const STAIRS_COOLDOWN_SECONDS = 1.2
+const TOUCH_LOOK_SENSITIVITY = 0.0032
+const MAX_PITCH = Math.PI / 2 - 0.05
 
 interface KeyState {
   forward: boolean
@@ -44,6 +47,8 @@ export function Player({ spawn = [2, 1, 2] }: PlayerProps) {
   const keysRef = useRef<KeyState>({ forward: false, backward: false, left: false, right: false })
   const bobPhase = useRef(0)
   const stairsCooldown = useRef(0)
+  const [isTouch] = useState(() => isTouchDevice())
+  const yawPitch = useRef<{ yaw: number; pitch: number } | null>(null)
 
   useEffect(() => {
     const handle = (down: boolean) => (event: KeyboardEvent) => {
@@ -64,6 +69,22 @@ export function Player({ spawn = [2, 1, 2] }: PlayerProps) {
     const body = bodyRef.current
     if (!body) return
 
+    // No mouse/pointer-lock on touch devices — track yaw/pitch ourselves
+    // from look-drag deltas and drive the camera directly, in the same
+    // Euler order PointerLockControls uses so movement math below (which
+    // reads camera.quaternion either way) doesn't need to care which path
+    // set it.
+    if (isTouch) {
+      if (!yawPitch.current) {
+        const initial = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ')
+        yawPitch.current = { yaw: initial.y, pitch: initial.x }
+      }
+      const { dx, dy } = consumeLookDelta()
+      yawPitch.current.yaw -= dx * TOUCH_LOOK_SENSITIVITY
+      yawPitch.current.pitch = THREE.MathUtils.clamp(yawPitch.current.pitch - dy * TOUCH_LOOK_SENSITIVITY, -MAX_PITCH, MAX_PITCH)
+      camera.quaternion.setFromEuler(new THREE.Euler(yawPitch.current.pitch, yawPitch.current.yaw, 0, 'YXZ'))
+    }
+
     const { forward, backward, left, right } = keysRef.current
     const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ')
     const forwardVec = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(0, euler.y, 0))
@@ -74,8 +95,13 @@ export function Player({ spawn = [2, 1, 2] }: PlayerProps) {
     if (backward) dir.sub(forwardVec)
     if (right) dir.add(rightVec)
     if (left) dir.sub(rightVec)
+    if (isTouch) {
+      const joystick = getJoystick()
+      dir.add(forwardVec.clone().multiplyScalar(-joystick.y))
+      dir.add(rightVec.clone().multiplyScalar(joystick.x))
+    }
 
-    const isMoving = dir.lengthSq() > 0
+    const isMoving = dir.lengthSq() > 0.0001
     const currentVel = body.linvel()
     if (isMoving) {
       dir.normalize().multiplyScalar(SPEED)
@@ -122,7 +148,7 @@ export function Player({ spawn = [2, 1, 2] }: PlayerProps) {
 
   return (
     <>
-      <PointerLockControls />
+      {!isTouch && <PointerLockControls />}
       <RigidBody ref={bodyRef} position={spawn} colliders={false} mass={1} enabledRotations={[false, false, false]}>
         <CapsuleCollider args={[CAPSULE_HALF_HEIGHT, CAPSULE_RADIUS]} />
       </RigidBody>

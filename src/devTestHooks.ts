@@ -27,6 +27,7 @@ import { useGoals } from './stores/useGoals'
 import { useDayReport } from './stores/useDayReport'
 import { getLiveCustomers, getHeatGrid, resetLiveCustomers } from './systems/customerSimulation'
 import { getLiveStaff } from './systems/staffSimulation'
+import { getJoystick, isTouchDevice } from './systems/touchInput'
 import { PRODUCTS } from './data/products'
 import { STARTER_BLUEPRINTS } from './data/starterBlueprints'
 
@@ -60,6 +61,8 @@ declare global {
       getLiveStaff: typeof getLiveStaff
       getHeatGrid: typeof getHeatGrid
       resetLiveCustomers: typeof resetLiveCustomers
+      getJoystick: typeof getJoystick
+      isTouchDevice: typeof isTouchDevice
       PRODUCTS: typeof PRODUCTS
       STARTER_BLUEPRINTS: typeof STARTER_BLUEPRINTS
     }
@@ -94,6 +97,8 @@ window.__retailEmpireDebug = {
   getLiveStaff,
   getHeatGrid,
   resetLiveCustomers,
+  getJoystick,
+  isTouchDevice,
   PRODUCTS,
   STARTER_BLUEPRINTS,
 }
