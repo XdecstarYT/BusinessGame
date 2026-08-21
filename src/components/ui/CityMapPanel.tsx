@@ -4,13 +4,14 @@ import { NEIGHBORHOODS } from '../../data/neighborhoods'
 import { useCityMap } from '../../stores/useCityMap'
 import { useCompetitors } from '../../stores/useCompetitors'
 import { COMPETITOR_CHAIN_MAP } from '../../data/competitors'
+import { PanelShell } from './PanelShell'
+import { btn } from './theme'
 
 interface CityMapPanelProps {
   onClose: () => void
 }
 
-const smallBtn =
-  'px-2 py-1 rounded text-[11px] font-medium bg-white/10 border border-white/10 text-white/80 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10'
+const smallBtn = btn.ghost
 
 export function CityMapPanel({ onClose }: CityMapPanelProps) {
   const cash = useFinance((s) => s.cash)
@@ -26,14 +27,7 @@ export function CityMapPanel({ onClose }: CityMapPanelProps) {
   const [scoutedPlotId, setScoutedPlotId] = useState<string | null>(null)
 
   return (
-    <div className="pointer-events-auto absolute top-20 right-4 w-80 max-h-[28rem] overflow-y-auto bg-black/80 backdrop-blur-sm rounded-xl shadow-lg text-white">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 sticky top-0 bg-black/90 backdrop-blur-sm rounded-t-xl">
-        <span className="font-semibold text-sm">🗺️ City Map</span>
-        <button onClick={onClose} className="text-white/60 hover:text-white text-sm">
-          ✕
-        </button>
-      </div>
-
+    <PanelShell icon="city" title="City Map" onClose={onClose} position="top-20 right-4">
       <div className="px-4 py-3">
         <div className="text-[11px] text-white/40 italic mb-3">
           Acquired locations run under a chain manager — see HQ for their numbers. A rival-held plot costs more to take, but buys them out.
@@ -120,6 +114,6 @@ export function CityMapPanel({ onClose }: CityMapPanelProps) {
           })}
         </div>
       </div>
-    </div>
+    </PanelShell>
   )
 }

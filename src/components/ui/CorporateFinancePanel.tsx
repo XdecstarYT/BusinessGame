@@ -1,13 +1,14 @@
 import { useFinance } from '../../stores/useFinance'
 import { useCorporateFinance } from '../../stores/useCorporateFinance'
 import { LOAN_OFFERS, FUNDING_ROUNDS, IPO_VALUATION_THRESHOLD, INSURANCE_DAILY_PREMIUM, INSURANCE_REIMBURSEMENT_RATE } from '../../data/finance'
+import { PanelShell } from './PanelShell'
+import { btn, sectionLabel } from './theme'
 
 interface CorporateFinancePanelProps {
   onClose: () => void
 }
 
-const smallBtn =
-  'px-2 py-1 rounded text-[11px] font-medium bg-white/10 border border-white/10 text-white/80 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10'
+const smallBtn = btn.ghost
 
 export function CorporateFinancePanel({ onClose }: CorporateFinancePanelProps) {
   const cash = useFinance((s) => s.cash)
@@ -28,14 +29,13 @@ export function CorporateFinancePanel({ onClose }: CorporateFinancePanelProps) {
   const ipoReady = !isPublic && valuation >= IPO_VALUATION_THRESHOLD
 
   return (
-    <div className="pointer-events-auto absolute top-36 right-4 w-96 max-h-[28rem] overflow-y-auto bg-black/80 backdrop-blur-sm rounded-xl shadow-lg text-white">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 sticky top-0 bg-black/90 backdrop-blur-sm rounded-t-xl">
-        <span className="font-semibold text-sm">🏦 Corporate {isPublic && <span className="text-emerald-400 text-[10px] ml-1">PUBLIC</span>}</span>
-        <button onClick={onClose} className="text-white/60 hover:text-white text-sm">
-          ✕
-        </button>
-      </div>
-
+    <PanelShell
+      icon="bank"
+      title="Corporate"
+      badge={isPublic && <span className="text-emerald-400 text-[10px] font-semibold ml-1">PUBLIC</span>}
+      onClose={onClose}
+      width="w-96"
+    >
       <div className="px-4 py-3">
         <div className="flex items-center justify-between text-xs mb-1">
           <span className="text-white/60">Credit score</span>
@@ -50,7 +50,7 @@ export function CorporateFinancePanel({ onClose }: CorporateFinancePanelProps) {
 
         {/* Loan */}
         <div className="mb-3">
-          <div className="text-[11px] text-white/50 mb-1">Loan</div>
+          <div className={sectionLabel}>Loan</div>
           {activeLoan ? (
             <div className="text-[10px] bg-white/5 rounded px-2 py-1.5">
               <div className="font-medium">{activeLoan.label}</div>
@@ -95,7 +95,7 @@ export function CorporateFinancePanel({ onClose }: CorporateFinancePanelProps) {
 
         {/* Funding rounds */}
         <div className="mb-3">
-          <div className="text-[11px] text-white/50 mb-1">Investor funding (one-time each)</div>
+          <div className={sectionLabel}>Investor funding (one-time each)</div>
           <div className="flex flex-col gap-1">
             {FUNDING_ROUNDS.map((round) => {
               const taken = fundingRoundsTaken.includes(round.id)
@@ -129,7 +129,7 @@ export function CorporateFinancePanel({ onClose }: CorporateFinancePanelProps) {
 
         {quarterlyReports.length > 0 && (
           <div className="mb-3">
-            <div className="text-[11px] text-white/50 mb-1">Quarterly earnings</div>
+            <div className={sectionLabel}>Quarterly earnings</div>
             <div className="flex flex-col gap-1">
               {quarterlyReports.slice(0, 3).map((report, i) => (
                 <div key={i} className="text-[10px] text-white/60 bg-white/5 rounded px-2 py-1">
@@ -143,7 +143,7 @@ export function CorporateFinancePanel({ onClose }: CorporateFinancePanelProps) {
 
         {events.length > 0 && (
           <div>
-            <div className="text-[11px] text-white/50 mb-1">Recent activity</div>
+            <div className={sectionLabel}>Recent activity</div>
             <div className="flex flex-col gap-1">
               {events.slice(0, 4).map((event, i) => (
                 <div key={i} className="text-[10px] text-white/50">
@@ -156,6 +156,6 @@ export function CorporateFinancePanel({ onClose }: CorporateFinancePanelProps) {
 
         <div className="text-[10px] text-white/30 italic mt-3">Cash on hand: ${cash.toFixed(2)}</div>
       </div>
-    </div>
+    </PanelShell>
   )
 }

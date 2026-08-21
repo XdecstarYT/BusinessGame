@@ -1,5 +1,6 @@
 import { useAchievements } from '../../stores/useAchievements'
 import { ACHIEVEMENTS } from '../../data/achievements'
+import { PanelShell } from './PanelShell'
 
 interface AchievementsPanelProps {
   onClose: () => void
@@ -10,16 +11,12 @@ export function AchievementsPanel({ onClose }: AchievementsPanelProps) {
   const unlockedCount = Object.keys(unlocked).length
 
   return (
-    <div className="pointer-events-auto absolute top-36 right-4 w-80 max-h-[28rem] overflow-y-auto bg-black/80 backdrop-blur-sm rounded-xl shadow-lg text-white">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 sticky top-0 bg-black/90 backdrop-blur-sm rounded-t-xl">
-        <span className="font-semibold text-sm">
-          🏆 Achievements <span className="text-white/40 font-normal">({unlockedCount}/{ACHIEVEMENTS.length})</span>
-        </span>
-        <button onClick={onClose} className="text-white/60 hover:text-white text-sm">
-          ✕
-        </button>
-      </div>
-
+    <PanelShell
+      icon="trophy"
+      title="Achievements"
+      badge={<span className="text-white/40 font-normal text-xs">({unlockedCount}/{ACHIEVEMENTS.length})</span>}
+      onClose={onClose}
+    >
       <div className="px-4 py-3 flex flex-col gap-2">
         {ACHIEVEMENTS.map((a) => {
           const day = unlocked[a.id]
@@ -41,6 +38,6 @@ export function AchievementsPanel({ onClose }: AchievementsPanelProps) {
           )
         })}
       </div>
-    </div>
+    </PanelShell>
   )
 }

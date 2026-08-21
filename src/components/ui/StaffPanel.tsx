@@ -3,13 +3,14 @@ import { LIGHTING_MOODS, useStoreAtmosphere, type LightingMood } from '../../sto
 import { useFinance } from '../../stores/useFinance'
 import { useStaff } from '../../stores/useStaff'
 import { useStoreLayout } from '../../stores/useStoreLayout'
+import { PanelShell } from './PanelShell'
+import { btn, sectionLabel, selectCls } from './theme'
 
 interface StaffPanelProps {
   onClose: () => void
 }
 
-const smallBtn =
-  'px-2 py-1 rounded text-[11px] font-medium bg-white/10 border border-white/10 text-white/80 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10'
+const smallBtn = btn.ghost
 
 export function StaffPanel({ onClose }: StaffPanelProps) {
   const cash = useFinance((s) => s.cash)
@@ -28,16 +29,9 @@ export function StaffPanel({ onClose }: StaffPanelProps) {
   const members = Object.values(roster)
 
   return (
-    <div className="pointer-events-auto absolute top-36 right-4 w-80 max-h-[28rem] overflow-y-auto bg-black/80 backdrop-blur-sm rounded-xl shadow-lg text-white">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 sticky top-0 bg-black/90 backdrop-blur-sm rounded-t-xl">
-        <span className="font-semibold text-sm">👥 Staff & Atmosphere</span>
-        <button onClick={onClose} className="text-white/60 hover:text-white text-sm">
-          ✕
-        </button>
-      </div>
-
+    <PanelShell icon="users" title="Staff & Atmosphere" onClose={onClose}>
       <div className="px-4 py-3">
-        <div className="text-[11px] text-white/50 mb-2">Hire</div>
+        <div className={sectionLabel}>Hire</div>
         <div className="flex flex-col gap-1.5">
           {(Object.values(STAFF_ROLES) as (typeof STAFF_ROLES)[StaffRole][]).map((def) => (
             <div key={def.role} className="flex items-center gap-2">
@@ -54,7 +48,7 @@ export function StaffPanel({ onClose }: StaffPanelProps) {
       </div>
 
       <div className="px-4 py-3 border-t border-white/10">
-        <div className="text-[11px] text-white/50 mb-2">Roster ({members.length})</div>
+        <div className={sectionLabel}>Roster ({members.length})</div>
         {members.length === 0 && <div className="text-xs text-white/40 italic">No staff hired yet.</div>}
         {members.map((member) => {
           const def = STAFF_ROLES[member.role]
@@ -72,7 +66,7 @@ export function StaffPanel({ onClose }: StaffPanelProps) {
                 <select
                   value={member.shift}
                   onChange={(e) => setShift(member.id, e.target.value as Shift)}
-                  className="bg-white/10 border border-white/10 rounded text-[11px] px-1 py-0.5 text-white flex-1"
+                  className={`${selectCls} flex-1`}
                 >
                   {Object.entries(SHIFT_WINDOWS).map(([shift, window]) => (
                     <option key={shift} value={shift} className="text-black">
@@ -95,7 +89,7 @@ export function StaffPanel({ onClose }: StaffPanelProps) {
                 <select
                   value={member.assignedFixtureId ?? ''}
                   onChange={(e) => assignCashier(member.id, e.target.value || null)}
-                  className="bg-white/10 border border-white/10 rounded text-[11px] px-1 py-0.5 text-white"
+                  className={selectCls}
                 >
                   <option value="" className="text-black">
                     Unassigned
@@ -123,7 +117,7 @@ export function StaffPanel({ onClose }: StaffPanelProps) {
       </div>
 
       <div className="px-4 py-3 border-t border-white/10">
-        <div className="text-[11px] text-white/50 mb-2">Atmosphere</div>
+        <div className={sectionLabel}>Atmosphere</div>
         <div className="flex items-center gap-2 mb-2">
           <div className="h-1.5 flex-1 rounded-full bg-white/10 overflow-hidden">
             <div
@@ -145,6 +139,6 @@ export function StaffPanel({ onClose }: StaffPanelProps) {
           ))}
         </div>
       </div>
-    </div>
+    </PanelShell>
   )
 }

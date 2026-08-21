@@ -7,6 +7,8 @@ import { useFinance } from '../../stores/useFinance'
 import { useInventory } from '../../stores/useInventory'
 import { useSupplyChain } from '../../stores/useSupplyChain'
 import { useGameClock } from '../../stores/useGameClock'
+import { PanelShell } from './PanelShell'
+import { btn, sectionLabel, selectCls as themeSelectCls } from './theme'
 
 interface SupplyChainPanelProps {
   onClose: () => void
@@ -14,10 +16,9 @@ interface SupplyChainPanelProps {
 
 const QUICK_QUANTITIES = [50, 100, 200]
 
-const rowBase = 'flex flex-col gap-1.5 py-2 border-b border-white/10 last:border-b-0'
-const smallBtn =
-  'px-2 py-1 rounded text-[11px] font-medium bg-white/10 border border-white/10 text-white/80 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10'
-const selectCls = 'bg-white/10 border border-white/10 rounded px-1.5 py-1 text-[11px] text-white/80'
+const rowBase = 'flex flex-col gap-1.5 py-2 border-b border-white/[0.06] last:border-b-0'
+const smallBtn = btn.ghost
+const selectCls = themeSelectCls
 
 export function SupplyChainPanel({ onClose }: SupplyChainPanelProps) {
   const cash = useFinance((s) => s.cash)
@@ -48,16 +49,9 @@ export function SupplyChainPanel({ onClose }: SupplyChainPanelProps) {
   const nextTier = WAREHOUSE_TIERS[warehouseTier + 1]
 
   return (
-    <div className="pointer-events-auto absolute top-36 right-4 w-96 max-h-[28rem] overflow-y-auto bg-black/80 backdrop-blur-sm rounded-xl shadow-lg text-white">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 sticky top-0 bg-black/90 backdrop-blur-sm rounded-t-xl">
-        <span className="font-semibold text-sm">🚚 Supply Chain</span>
-        <button onClick={onClose} className="text-white/60 hover:text-white text-sm">
-          ✕
-        </button>
-      </div>
-
+    <PanelShell icon="truck" title="Supply Chain" onClose={onClose} width="w-96">
       <div className="px-4 py-3">
-        <div className="text-[11px] text-white/50 mb-1">
+        <div className={sectionLabel}>
           Warehouse: {WAREHOUSE_TIERS[warehouseTier].label} — {totalStockroomUnits} / {stockroomCapacity} units
         </div>
         {nextTier ? (
@@ -74,7 +68,7 @@ export function SupplyChainPanel({ onClose }: SupplyChainPanelProps) {
 
         {pendingOrders.length > 0 && (
           <div className="mb-3">
-            <div className="text-[11px] text-white/50 mb-1">In transit</div>
+            <div className={sectionLabel}>In transit</div>
             <div className="flex flex-col gap-1">
               {pendingOrders.map((order) => {
                 const product = PRODUCT_MAP[order.productId]
@@ -92,7 +86,7 @@ export function SupplyChainPanel({ onClose }: SupplyChainPanelProps) {
 
         {events.length > 0 && (
           <div className="mb-3">
-            <div className="text-[11px] text-white/50 mb-1">Recent activity</div>
+            <div className={sectionLabel}>Recent activity</div>
             <div className="flex flex-col gap-1">
               {events.slice(0, 4).map((event, i) => (
                 <div key={i} className="text-[10px] text-white/50">
@@ -195,6 +189,6 @@ export function SupplyChainPanel({ onClose }: SupplyChainPanelProps) {
           })}
         </div>
       </div>
-    </div>
+    </PanelShell>
   )
 }

@@ -4,13 +4,14 @@ import { useCorporateHQ } from '../../stores/useCorporateHQ'
 import { NEIGHBORHOODS } from '../../data/neighborhoods'
 import { MANAGER_QUALITY_UPGRADE_COST, MAX_MANAGER_QUALITY } from '../../systems/corporateHQ'
 import { FRANCHISE_UNLOCK_REPUTATION, MAX_FRANCHISEES, FRANCHISEE_LICENSE_COST, FRANCHISEE_DAILY_ROYALTY } from '../../data/franchise'
+import { PanelShell } from './PanelShell'
+import { btn, sectionLabel } from './theme'
 
 interface HQPanelProps {
   onClose: () => void
 }
 
-const smallBtn =
-  'px-2 py-1 rounded text-[11px] font-medium bg-white/10 border border-white/10 text-white/80 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10'
+const smallBtn = btn.ghost
 
 export function HQPanel({ onClose }: HQPanelProps) {
   const cash = useFinance((s) => s.cash)
@@ -31,16 +32,9 @@ export function HQPanel({ onClose }: HQPanelProps) {
   const unlocked = franchiseUnlocked()
 
   return (
-    <div className="pointer-events-auto absolute top-36 right-4 w-96 max-h-[28rem] overflow-y-auto bg-black/80 backdrop-blur-sm rounded-xl shadow-lg text-white">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 sticky top-0 bg-black/90 backdrop-blur-sm rounded-t-xl">
-        <span className="font-semibold text-sm">🏢 HQ</span>
-        <button onClick={onClose} className="text-white/60 hover:text-white text-sm">
-          ✕
-        </button>
-      </div>
-
+    <PanelShell icon="building" title="HQ" onClose={onClose} width="w-96">
       <div className="px-4 py-3">
-        <div className="text-[11px] text-white/50 mb-1">Chain-wide, today</div>
+        <div className={sectionLabel}>Chain-wide, today</div>
         <div className="flex items-center justify-between text-xs mb-1">
           <span className="text-white/60">Home store revenue</span>
           <span className="font-medium">${dailyRevenue.toFixed(2)}</span>
@@ -56,7 +50,7 @@ export function HQPanel({ onClose }: HQPanelProps) {
           <span className="font-medium text-emerald-400">${royaltyIncome.toFixed(2)}</span>
         </div>
 
-        <div className="text-[11px] text-white/50 mb-1">Managed locations</div>
+        <div className={sectionLabel}>Managed locations</div>
         {locationList.length === 0 ? (
           <div className="text-[10px] text-white/40 italic mb-3">
             No other locations yet — acquire a plot on the City Map to grow the chain.
@@ -86,7 +80,7 @@ export function HQPanel({ onClose }: HQPanelProps) {
           </div>
         )}
 
-        <div className="text-[11px] text-white/50 mb-1">Franchising</div>
+        <div className={sectionLabel}>Franchising</div>
         <div className="text-[10px] bg-white/5 rounded px-2 py-1.5 mb-3">
           {unlocked ? (
             <>
@@ -113,7 +107,7 @@ export function HQPanel({ onClose }: HQPanelProps) {
 
         {events.length > 0 && (
           <div>
-            <div className="text-[11px] text-white/50 mb-1">Recent activity</div>
+            <div className={sectionLabel}>Recent activity</div>
             <div className="flex flex-col gap-1">
               {events.slice(0, 4).map((event, i) => (
                 <div key={i} className="text-[10px] text-white/50">
@@ -124,6 +118,6 @@ export function HQPanel({ onClose }: HQPanelProps) {
           </div>
         )}
       </div>
-    </div>
+    </PanelShell>
   )
 }

@@ -2,13 +2,14 @@ import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 
 import { useFinance } from '../../stores/useFinance'
 import { useAnalytics } from '../../stores/useAnalytics'
 import { linearForecast } from '../../systems/forecast'
+import { PanelShell } from './PanelShell'
+import { btn, sectionLabel } from './theme'
 
 interface AnalyticsPanelProps {
   onClose: () => void
 }
 
-const smallBtn =
-  'px-2 py-1 rounded text-[11px] font-medium bg-white/10 border border-white/10 text-white/80 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10'
+const smallBtn = btn.ghost
 
 const CATEGORY_COLORS = ['#34d399', '#60a5fa', '#f59e0b', '#f472b6', '#a78bfa', '#22d3ee', '#fb923c', '#a3e635', '#e879f9']
 
@@ -29,24 +30,17 @@ export function AnalyticsPanel({ onClose }: AnalyticsPanelProps) {
   const chartData = history.map((d) => ({ day: `D${d.day}`, profit: Math.round(d.profit * 100) / 100 }))
 
   return (
-    <div className="pointer-events-auto absolute top-36 right-4 w-96 max-h-[28rem] overflow-y-auto bg-black/80 backdrop-blur-sm rounded-xl shadow-lg text-white">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 sticky top-0 bg-black/90 backdrop-blur-sm rounded-t-xl">
-        <span className="font-semibold text-sm">📊 Analytics</span>
-        <button onClick={onClose} className="text-white/60 hover:text-white text-sm">
-          ✕
-        </button>
-      </div>
-
+    <PanelShell icon="barChart" title="Analytics" onClose={onClose} width="w-96">
       <div className="px-4 py-3">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[11px] text-white/50">Traffic heatmap overlay</span>
+          <span className={sectionLabel + ' mb-0'}>Traffic heatmap overlay</span>
           <button className={smallBtn} onClick={toggleHeatmap}>
             {showHeatmap ? 'Hide' : 'Show'}
           </button>
         </div>
 
         <div className="mb-3">
-          <div className="text-[11px] text-white/50 mb-1">Revenue by category (lifetime)</div>
+          <div className={sectionLabel}>Revenue by category (lifetime)</div>
           {categoryData.length === 0 ? (
             <div className="text-xs text-white/40 italic">No sales recorded yet.</div>
           ) : (
@@ -71,7 +65,7 @@ export function AnalyticsPanel({ onClose }: AnalyticsPanelProps) {
         </div>
 
         <div className="mb-3">
-          <div className="text-[11px] text-white/50 mb-2">Daily profit history</div>
+          <div className={sectionLabel}>Daily profit history</div>
           {chartData.length === 0 ? (
             <div className="text-xs text-white/40 italic">Profit history appears after your first full day.</div>
           ) : (
@@ -93,7 +87,7 @@ export function AnalyticsPanel({ onClose }: AnalyticsPanelProps) {
           )}
         </div>
 
-        <div className="text-[11px] text-white/50 mb-1">Simple forecast</div>
+        <div className={sectionLabel}>Simple forecast</div>
         {history.length < 2 ? (
           <div className="text-xs text-white/40 italic">Needs a couple days of history to project a trend.</div>
         ) : (
@@ -104,6 +98,6 @@ export function AnalyticsPanel({ onClose }: AnalyticsPanelProps) {
           </div>
         )}
       </div>
-    </div>
+    </PanelShell>
   )
 }

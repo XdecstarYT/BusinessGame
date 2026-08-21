@@ -23,11 +23,14 @@ export function AchievementToast() {
         const def = ACHIEVEMENT_MAP[id]
         if (!def) return null
         return (
-          <div key={id} className="flex items-center gap-2 bg-amber-500/15 border border-amber-400/40 rounded-lg px-3 py-2 shadow-lg backdrop-blur-sm">
+          <div
+            key={id}
+            className="hud-panel-enter flex items-center gap-2.5 bg-gradient-to-b from-amber-500/20 to-amber-600/10 border border-amber-400/40 rounded-xl px-3.5 py-2.5 shadow-[0_12px_30px_-10px_rgba(251,191,36,0.5)] backdrop-blur-xl"
+          >
             <span className="text-xl">{def.icon}</span>
             <div>
-              <div className="text-[10px] text-amber-300 font-semibold uppercase tracking-wide">Achievement unlocked</div>
-              <div className="text-xs text-white font-medium">{def.label}</div>
+              <div className="text-[10px] text-amber-300 font-bold uppercase tracking-[0.08em]">Achievement unlocked</div>
+              <div className="text-xs text-white font-semibold">{def.label}</div>
             </div>
           </div>
         )

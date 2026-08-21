@@ -4,6 +4,7 @@ import { useStoreLayout } from '../../stores/useStoreLayout'
 import { FIXTURE_DEFINITIONS, FLOOR_COST, WALL_COST } from '../../data/fixtureDefinitions'
 import { exportBlueprintToJSON, importBlueprintFromJSON, loadFromSlot, saveToSlot } from '../../hooks/useSaveGame'
 import { STARTER_BLUEPRINTS } from '../../data/starterBlueprints'
+import { chromeBar, btn, divider } from './theme'
 
 const TOOL_OPTIONS: { tool: BuildTool; label: string; cost: number }[] = [
   { tool: 'floor', label: 'Floor', cost: FLOOR_COST },
@@ -13,8 +14,13 @@ const TOOL_OPTIONS: { tool: BuildTool; label: string; cost: number }[] = [
   { tool: 'stairs', label: FIXTURE_DEFINITIONS.stairs.label, cost: FIXTURE_DEFINITIONS.stairs.cost },
 ]
 
-const btnBase =
-  'px-3 py-1.5 rounded-md text-sm font-medium transition-colors border'
+const btnBase = 'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border'
+const toolBtn = (active: boolean) =>
+  `${btnBase} ${
+    active
+      ? 'bg-emerald-500 border-emerald-400 text-white shadow-[0_0_14px_-3px_rgba(52,211,153,0.8)]'
+      : 'bg-white/[0.06] border-white/10 text-white/75 hover:bg-white/[0.12] hover:border-white/20'
+  }`
 
 export function BuildToolbar() {
   const tool = useBuildTool((s) => s.tool)
@@ -95,106 +101,70 @@ export function BuildToolbar() {
 
   return (
     <div className="pointer-events-auto absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-      {status && <div className="rounded-full bg-black/80 text-white text-xs px-3 py-1">{status}</div>}
+      {status && <div className="rounded-full bg-[#171a22]/95 border border-white/10 text-white text-xs px-3 py-1 shadow-lg">{status}</div>}
 
-      <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-lg">
-        <span className="text-[11px] text-white/50 mr-1">Level</span>
+      <div className={`${chromeBar} gap-1.5 px-3 py-1.5`}>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/40 mr-1">Level</span>
         {Array.from({ length: maxLevel + 1 }, (_, level) => (
-          <button
-            key={level}
-            onClick={() => setActiveLevel(level)}
-            className={`${btnBase} px-2.5 py-1 text-xs ${
-              activeLevel === level
-                ? 'bg-emerald-500 border-emerald-400 text-white'
-                : 'bg-white/10 border-white/10 text-white/80 hover:bg-white/20'
-            }`}
-          >
+          <button key={level} onClick={() => setActiveLevel(level)} className={`${toolBtn(activeLevel === level)} px-2.5 py-1 text-xs`}>
             {level === 0 ? 'Ground' : level + 1}
           </button>
         ))}
-        <button
-          onClick={addLevel}
-          className={`${btnBase} px-2.5 py-1 text-xs bg-white/10 border-white/10 text-white/80 hover:bg-white/20`}
-          title="Add a new floor above"
-        >
+        <button onClick={addLevel} className={`${btn.ghost} !text-xs`} title="Add a new floor above">
           + Add Floor
         </button>
       </div>
 
-      <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-xl px-3 py-2 shadow-lg">
+      <div className={`${chromeBar} gap-2 px-3 py-2`}>
         {TOOL_OPTIONS.map((opt) => (
-          <button
-            key={opt.tool}
-            onClick={() => setTool(opt.tool)}
-            className={`${btnBase} ${
-              tool === opt.tool
-                ? 'bg-emerald-500 border-emerald-400 text-white'
-                : 'bg-white/10 border-white/10 text-white/80 hover:bg-white/20'
-            }`}
-          >
+          <button key={opt.tool} onClick={() => setTool(opt.tool)} className={toolBtn(tool === opt.tool)}>
             {opt.label}
             <span className="ml-1.5 text-[10px] opacity-70">${opt.cost}</span>
           </button>
         ))}
 
-        <div className="w-px h-6 bg-white/20 mx-1" />
+        <div className={divider} />
 
         <button
           onClick={rotateSelection}
           disabled={tool !== 'shelf' && tool !== 'checkout' && tool !== 'stairs'}
-          className={`${btnBase} bg-white/10 border-white/10 text-white/80 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10`}
+          className={btn.ghost}
           title="Rotate selection"
         >
           ⟳ Rotate
         </button>
 
-        <button
-          onClick={undo}
-          disabled={pastLength === 0}
-          className={`${btnBase} bg-white/10 border-white/10 text-white/80 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10`}
-        >
+        <button onClick={undo} disabled={pastLength === 0} className={btn.ghost}>
           Undo
         </button>
-        <button
-          onClick={redo}
-          disabled={futureLength === 0}
-          className={`${btnBase} bg-white/10 border-white/10 text-white/80 hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-white/10`}
-        >
+        <button onClick={redo} disabled={futureLength === 0} className={btn.ghost}>
           Redo
         </button>
 
-        <div className="w-px h-6 bg-white/20 mx-1" />
+        <div className={divider} />
 
         {[0, 1, 2].map((slot) => (
           <div key={slot} className="flex gap-0.5">
-            <button
-              onClick={() => handleSave(slot)}
-              className={`${btnBase} bg-white/10 border-white/10 text-white/80 hover:bg-white/20`}
-              title={`Save to slot ${slot + 1}`}
-            >
+            <button onClick={() => handleSave(slot)} className={btn.ghost} title={`Save to slot ${slot + 1}`}>
               💾{slot + 1}
             </button>
-            <button
-              onClick={() => handleLoad(slot)}
-              className={`${btnBase} bg-white/10 border-white/10 text-white/80 hover:bg-white/20`}
-              title={`Load slot ${slot + 1}`}
-            >
+            <button onClick={() => handleLoad(slot)} className={btn.ghost} title={`Load slot ${slot + 1}`}>
               📂{slot + 1}
             </button>
           </div>
         ))}
 
-        <div className="w-px h-6 bg-white/20 mx-1" />
+        <div className={divider} />
 
-        <button onClick={handleExport} className={`${btnBase} bg-white/10 border-white/10 text-white/80 hover:bg-white/20`}>
+        <button onClick={handleExport} className={btn.ghost}>
           Export
         </button>
-        <button onClick={handleImportClick} className={`${btnBase} bg-white/10 border-white/10 text-white/80 hover:bg-white/20`}>
+        <button onClick={handleImportClick} className={btn.ghost}>
           Import
         </button>
         <input ref={fileInputRef} type="file" accept="application/json" onChange={handleImportFile} className="hidden" />
 
-        <div className="w-px h-6 bg-white/20 mx-1" />
+        <div className={divider} />
 
         <select
           value=""
@@ -205,7 +175,7 @@ export function BuildToolbar() {
               flash(`Loaded "${template.name}"`)
             }
           }}
-          className="bg-white/10 border border-white/10 rounded-md text-sm px-2 py-1.5 text-white/80"
+          className="bg-white/[0.06] border border-white/10 rounded-lg text-sm px-2 py-1.5 text-white/80 focus:outline-none focus:border-emerald-400/50"
         >
           <option value="" disabled>
             Starter templates…
@@ -217,22 +187,19 @@ export function BuildToolbar() {
           ))}
         </select>
 
-        <div className="w-px h-6 bg-white/20 mx-1" />
+        <div className={divider} />
 
-        <button
-          onClick={() => confirm('Clear entire store layout?') && clearAll()}
-          className={`${btnBase} bg-red-500/20 border-red-500/30 text-red-200 hover:bg-red-500/30`}
-        >
+        <button onClick={() => confirm('Clear entire store layout?') && clearAll()} className={btn.danger}>
           Clear
         </button>
       </div>
 
-      <div className="text-[11px] text-white/60 bg-black/50 rounded-full px-3 py-0.5">
+      <div className="text-[11px] text-white/60 bg-[#171a22]/90 border border-white/10 rounded-full px-3 py-0.5 shadow">
         {activeLevel === 0 ? 'Ground' : `Level ${activeLevel + 1}`} — {floorCount} floor · {wallCount} wall · {fixtureCount} fixture —
         left-click place, right-click remove
       </div>
       {activeLevel > 0 && (
-        <div className="text-[11px] text-amber-300/80 bg-black/50 rounded-full px-3 py-0.5">
+        <div className="text-[11px] text-amber-300/80 bg-[#171a22]/90 border border-white/10 rounded-full px-3 py-0.5 shadow">
           Note: customers and staff currently only shop the ground floor — upper floors are buildable and walkable.
         </div>
       )}
