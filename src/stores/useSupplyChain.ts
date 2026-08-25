@@ -3,6 +3,7 @@ import { PRODUCT_MAP } from '../data/products'
 import { SUPPLIER_MAP } from '../data/suppliers'
 import { contractUnitPrice, leadTimeArrivalDay, rollDisruption } from '../systems/supplyChainSim'
 import { hasManagerOnDuty } from '../systems/staffSimulation'
+import { spawnDeliveryTruck } from '../systems/deliveryTruckSim'
 import { useFinance } from './useFinance'
 import { useInventory } from './useInventory'
 
@@ -79,6 +80,7 @@ export const useSupplyChain = create<SupplyChainState>((set, get) => ({
       arrivalDay: leadTimeArrivalDay(currentDay, supplier),
     }
     set({ pendingOrders: [...state.pendingOrders, order] })
+    spawnDeliveryTruck(supplierId)
     return true
   },
 

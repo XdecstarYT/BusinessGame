@@ -24,14 +24,27 @@ export function CityMapPanel({ onClose, top }: CityMapPanelProps) {
   const presences = useCompetitors((s) => s.presences)
   const contestedAcquisitionCost = useCompetitors((s) => s.contestedAcquisitionCost)
   const removeCompetitor = useCompetitors((s) => s.removeCompetitor)
+  const priceWarPlots = useCompetitors((s) => s.priceWarPlots)
+  const rivalryScore = useCompetitors((s) => s.rivalryScore())
 
   const [scoutedPlotId, setScoutedPlotId] = useState<string | null>(null)
 
   return (
     <PanelShell icon="city" title="City Map" onClose={onClose} position="right-4" top={top}>
       <div className="px-4 py-3">
-        <div className="text-[11px] text-white/40 italic mb-3">
+        <div className="text-[11px] text-white/40 italic mb-2">
           Acquired locations run under a chain manager — see HQ for their numbers. A rival-held plot costs more to take, but buys them out.
+        </div>
+
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[10px] text-white/50 shrink-0">Rivalry</span>
+          <div className="h-1.5 flex-1 rounded-full bg-white/10 overflow-hidden">
+            <div
+              className={`h-full transition-all ${rivalryScore >= 60 ? 'bg-red-400' : rivalryScore >= 30 ? 'bg-amber-400' : 'bg-emerald-400'}`}
+              style={{ width: `${rivalryScore}%` }}
+            />
+          </div>
+          <span className="text-[10px] text-white/50 w-7 text-right">{rivalryScore}</span>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -58,12 +71,15 @@ export function CityMapPanel({ onClose, top }: CityMapPanelProps) {
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium">{plot.name}</span>
-                  {owned && <span className="text-[10px] text-emerald-400 font-semibold">OWNED</span>}
-                  {!owned && chain && (
-                    <span className="text-[10px] font-semibold" style={{ color: chain.color }}>
-                      {chain.name}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1.5">
+                    {!owned && chain && priceWarPlots[plot.id] && <span className="text-[10px] font-semibold text-red-400">🔥 Price war</span>}
+                    {owned && <span className="text-[10px] text-emerald-400 font-semibold">OWNED</span>}
+                    {!owned && chain && (
+                      <span className="text-[10px] font-semibold" style={{ color: chain.color }}>
+                        {chain.name}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="text-[10px] text-white/50 mt-0.5">{plot.description}</div>
                 <div className="text-[10px] text-white/40 mt-1">

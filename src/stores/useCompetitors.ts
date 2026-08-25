@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { NEIGHBORHOODS } from '../data/neighborhoods'
+import { PRODUCT_MAP } from '../data/products'
 import { useCityMap } from './useCityMap'
+import { useInventory } from './useInventory'
 import {
   COMPETITOR_CHAINS,
   COMPETITOR_CHAIN_MAP,
@@ -10,7 +12,26 @@ import {
   CITY_EVOLUTION_INTERVAL_DAYS,
   CITY_EVOLUTION_OPEN_CHANCE,
 } from '../data/competitors'
-import { driftPriceIndex } from '../systems/competitorSim'
+import { reactiveDriftPriceIndex, isPriceWar } from '../systems/competitorSim'
+
+/** Average of the player's active price overrides vs. each product's base
+ * retail price — 1.0 means "pricing at MSRP", below 1.0 means undercutting.
+ * Products with no override don't count toward it, so an empty store with
+ * no manual pricing reads as neutral rather than as a price war. */
+function computePlayerPriceIndex(): number {
+  const overrides = useInventory.getState().priceOverrides
+  const ids = Object.keys(overrides)
+  if (ids.length === 0) return 1
+  let sum = 0
+  let count = 0
+  for (const id of ids) {
+    const product = PRODUCT_MAP[id]
+    if (!product || product.retailPrice <= 0) continue
+    sum += overrides[id] / product.retailPrice
+    count++
+  }
+  return count > 0 ? sum / count : 1
+}
 
 export interface CompetitorPresence {
   plotId: string
@@ -22,11 +43,17 @@ interface CompetitorsState {
   presences: Record<string, CompetitorPresence>
   daysSinceCityEvolution: number
   events: string[]
+  priceWarPlots: Record<string, boolean>
 
   isContested: (plotId: string) => boolean
   contestedAcquisitionCost: (baseCost: number, plotId: string) => number
   removeCompetitor: (plotId: string) => void
   competitorPressure: () => number
+  /** 0-100 flavor gauge combining how many rivals are in the city, how
+   * aggressive their strategies are, and how many are currently in an
+   * active price war with the player — surfaced in the HUD/panels as a
+   * single "how hot is the competition" readout. */
+  rivalryScore: () => number
   tickDaily: () => void
 }
 
@@ -39,6 +66,7 @@ export const useCompetitors = create<CompetitorsState>((set, get) => ({
   presences: INITIAL_PRESENCES,
   daysSinceCityEvolution: 0,
   events: [],
+  priceWarPlots: {},
 
   isContested: (plotId) => plotId in get().presences,
 
@@ -49,7 +77,9 @@ export const useCompetitors = create<CompetitorsState>((set, get) => ({
       if (!(plotId in state.presences)) return state
       const presences = { ...state.presences }
       delete presences[plotId]
-      return { presences }
+      const priceWarPlots = { ...state.priceWarPlots }
+      delete priceWarPlots[plotId]
+      return { presences, priceWarPlots }
     })
   },
 
@@ -65,23 +95,46 @@ export const useCompetitors = create<CompetitorsState>((set, get) => ({
     return Math.min(0.3, pressure)
   },
 
+  rivalryScore: () => {
+    const state = get()
+    const presences = Object.values(state.presences)
+    if (presences.length === 0) return 0
+    let score = 0
+    for (const presence of presences) {
+      const chain = COMPETITOR_CHAIN_MAP[presence.chainId]
+      if (!chain) continue
+      score += STRATEGY_AGGRESSION[chain.strategy] * 22
+      if (state.priceWarPlots[presence.plotId]) score += 18
+    }
+    return Math.round(Math.min(100, score))
+  },
+
   tickDaily: () => {
     const state = get()
+    const playerPriceIndex = computePlayerPriceIndex()
     const presences: Record<string, CompetitorPresence> = {}
+    const priceWarPlots: Record<string, boolean> = {}
+    const warEvents: string[] = []
+
     for (const [plotId, presence] of Object.entries(state.presences)) {
       const chain = COMPETITOR_CHAIN_MAP[presence.chainId]
       if (!chain) {
         presences[plotId] = presence
         continue
       }
-      presences[plotId] = {
-        ...presence,
-        priceIndex: driftPriceIndex(presence.priceIndex, STRATEGY_PRICE_INDEX[chain.strategy], chain.strategy),
+      const nextPriceIndex = reactiveDriftPriceIndex(presence.priceIndex, STRATEGY_PRICE_INDEX[chain.strategy], chain.strategy, playerPriceIndex)
+      presences[plotId] = { ...presence, priceIndex: nextPriceIndex }
+
+      const atWar = isPriceWar(nextPriceIndex, playerPriceIndex, chain.strategy)
+      priceWarPlots[plotId] = atWar
+      if (atWar && !state.priceWarPlots[plotId]) {
+        const plot = NEIGHBORHOODS.find((p) => p.id === plotId)
+        warEvents.push(`🔥 Price war: ${chain.name} slashed prices to compete with you in ${plot?.name ?? plotId}`)
       }
     }
 
     const daysSinceCityEvolution = state.daysSinceCityEvolution + 1
-    let newEvents: string[] = []
+    let newEvents: string[] = warEvents
     let nextDaysSinceCityEvolution = daysSinceCityEvolution
 
     if (daysSinceCityEvolution >= CITY_EVOLUTION_INTERVAL_DAYS) {
@@ -92,12 +145,13 @@ export const useCompetitors = create<CompetitorsState>((set, get) => ({
         const plot = candidates[Math.floor(Math.random() * candidates.length)]
         const chain = COMPETITOR_CHAINS[Math.floor(Math.random() * COMPETITOR_CHAINS.length)]
         presences[plot.id] = { plotId: plot.id, chainId: chain.id, priceIndex: STRATEGY_PRICE_INDEX[chain.strategy] }
-        newEvents = [`🏢 ${chain.name} just opened a location in ${plot.name}`]
+        newEvents = [`🏢 ${chain.name} just opened a location in ${plot.name}`, ...warEvents]
       }
     }
 
     set({
       presences,
+      priceWarPlots,
       daysSinceCityEvolution: nextDaysSinceCityEvolution,
       events: newEvents.length > 0 ? [...newEvents, ...state.events].slice(0, 8) : state.events,
     })
