@@ -4,9 +4,10 @@ import { PanelShell } from './PanelShell'
 
 interface AchievementsPanelProps {
   onClose: () => void
+  top?: number
 }
 
-export function AchievementsPanel({ onClose }: AchievementsPanelProps) {
+export function AchievementsPanel({ onClose, top }: AchievementsPanelProps) {
   const unlocked = useAchievements((s) => s.unlocked)
   const unlockedCount = Object.keys(unlocked).length
 
@@ -16,6 +17,7 @@ export function AchievementsPanel({ onClose }: AchievementsPanelProps) {
       title="Achievements"
       badge={<span className="text-white/40 font-normal text-xs">({unlockedCount}/{ACHIEVEMENTS.length})</span>}
       onClose={onClose}
+      top={top}
     >
       <div className="px-4 py-3 flex flex-col gap-2">
         {ACHIEVEMENTS.map((a) => {

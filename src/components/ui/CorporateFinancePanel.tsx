@@ -6,11 +6,12 @@ import { btn, sectionLabel } from './theme'
 
 interface CorporateFinancePanelProps {
   onClose: () => void
+  top?: number
 }
 
 const smallBtn = btn.ghost
 
-export function CorporateFinancePanel({ onClose }: CorporateFinancePanelProps) {
+export function CorporateFinancePanel({ onClose, top }: CorporateFinancePanelProps) {
   const cash = useFinance((s) => s.cash)
   const creditScore = useCorporateFinance((s) => s.creditScore)
   const activeLoan = useCorporateFinance((s) => s.activeLoan)
@@ -35,6 +36,7 @@ export function CorporateFinancePanel({ onClose }: CorporateFinancePanelProps) {
       badge={isPublic && <span className="text-emerald-400 text-[10px] font-semibold ml-1">PUBLIC</span>}
       onClose={onClose}
       width="w-96"
+      top={top}
     >
       <div className="px-4 py-3">
         <div className="flex items-center justify-between text-xs mb-1">

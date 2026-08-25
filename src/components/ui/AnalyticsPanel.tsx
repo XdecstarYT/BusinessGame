@@ -7,6 +7,7 @@ import { btn, sectionLabel } from './theme'
 
 interface AnalyticsPanelProps {
   onClose: () => void
+  top?: number
 }
 
 const smallBtn = btn.ghost
@@ -15,7 +16,7 @@ const CATEGORY_COLORS = ['#34d399', '#60a5fa', '#f59e0b', '#f472b6', '#a78bfa', 
 
 const FORECAST_HORIZON_DAYS = 7
 
-export function AnalyticsPanel({ onClose }: AnalyticsPanelProps) {
+export function AnalyticsPanel({ onClose, top }: AnalyticsPanelProps) {
   const history = useFinance((s) => s.history)
   const categoryRevenue = useAnalytics((s) => s.categoryRevenue)
   const showHeatmap = useAnalytics((s) => s.showHeatmap)
@@ -30,7 +31,7 @@ export function AnalyticsPanel({ onClose }: AnalyticsPanelProps) {
   const chartData = history.map((d) => ({ day: `D${d.day}`, profit: Math.round(d.profit * 100) / 100 }))
 
   return (
-    <PanelShell icon="barChart" title="Analytics" onClose={onClose} width="w-96">
+    <PanelShell icon="barChart" title="Analytics" onClose={onClose} width="w-96" top={top}>
       <div className="px-4 py-3">
         <div className="flex items-center justify-between mb-3">
           <span className={sectionLabel + ' mb-0'}>Traffic heatmap overlay</span>

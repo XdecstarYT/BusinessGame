@@ -50,34 +50,39 @@ export function BuildModeScene() {
     [floors, walls, hasFloorAt, hasFixtureAt],
   )
 
-  const { target, onPointerMove, onPointerLeave } = useGridSnap(tool, isValid)
+  const { target, computeTarget, onPointerMove, onPointerLeave } = useGridSnap(tool, isValid)
 
   const handlePointerDown = useCallback(
     (event: ThreeEvent<PointerEvent>) => {
-      if (!target) return
+      // On touch there's no hover event before the tap, so `target` state
+      // can still be stale/null the first time — compute it fresh from
+      // this event's own position rather than trust it.
+      const activeTarget = target ?? computeTarget(event.point)
+      if (!activeTarget) return
       const isRemove = event.button === 2
 
-      if (target.kind === 'floor') {
-        if (isRemove) removeFloor(target.cell)
-        else if (target.valid) placeFloor(target.cell)
-      } else if (target.kind === 'wall') {
-        if (isRemove) removeWall(target.cell, target.orientation)
-        else if (target.valid) placeWall(target.cell, target.orientation)
-      } else if (target.kind === 'fixture') {
+      if (activeTarget.kind === 'floor') {
+        if (isRemove) removeFloor(activeTarget.cell)
+        else if (activeTarget.valid) placeFloor(activeTarget.cell)
+      } else if (activeTarget.kind === 'wall') {
+        if (isRemove) removeWall(activeTarget.cell, activeTarget.orientation)
+        else if (activeTarget.valid) placeWall(activeTarget.cell, activeTarget.orientation)
+      } else if (activeTarget.kind === 'fixture') {
         if (isRemove) {
-          const removed = Object.values(fixtures).find((f) => f.cell.x === target.cell.x && f.cell.z === target.cell.z)
-          removeFixtureAt(target.cell)
+          const removed = Object.values(fixtures).find((f) => f.cell.x === activeTarget.cell.x && f.cell.z === activeTarget.cell.z)
+          removeFixtureAt(activeTarget.cell)
           if (removed) {
             removeInventoryFixture(removed.id)
             unassignStaffFixture(removed.id)
           }
-        } else if (target.valid) {
-          placeFixture(tool as FixtureCategory, target.cell, rotation)
+        } else if (activeTarget.valid) {
+          placeFixture(tool as FixtureCategory, activeTarget.cell, rotation)
         }
       }
     },
     [
       target,
+      computeTarget,
       tool,
       rotation,
       fixtures,

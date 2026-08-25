@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useGameMode, type TimeScale } from '../../stores/useGameMode'
 import { useFinance } from '../../stores/useFinance'
 import { useGameClock, formatClock } from '../../stores/useGameClock'
@@ -85,6 +85,26 @@ export function HUD() {
   const togglePanel = (p: Panel) => setPanel((current) => (current === p ? null : p))
   const [isTouch] = useState(() => isTouchDevice())
 
+  // Panels anchor below the top-right stat/dock chrome, whose height varies
+  // (the stat row wraps onto extra lines on narrow phone screens) — a fixed
+  // top-36 offset would put the panel right under, or overlapping, buttons
+  // that got pushed further down than expected.
+  const topRightRef = useRef<HTMLDivElement>(null)
+  const [panelTop, setPanelTop] = useState(144)
+  useEffect(() => {
+    const el = topRightRef.current
+    if (!el) return
+    const update = () => setPanelTop(el.getBoundingClientRect().bottom + 8)
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(el)
+    window.addEventListener('resize', update)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+
   return (
     <div
       className="pointer-events-none absolute inset-0 select-none"
@@ -168,7 +188,7 @@ export function HUD() {
       </div>
 
       {/* Top-right: live stat readout + panel dock */}
-      <div className="pointer-events-auto absolute top-4 right-4 flex flex-col items-end gap-2 max-w-[min(32rem,46vw)]">
+      <div ref={topRightRef} className="pointer-events-auto absolute top-4 right-4 flex flex-col items-end gap-2 max-w-[min(32rem,46vw)]">
         <div className={`${chromeBar} gap-3 flex-wrap justify-end px-4 py-2 text-sm`}>
           <span className="flex items-center gap-1.5">
             <Icon name="dollar" size={15} className="text-emerald-400" />
@@ -235,16 +255,16 @@ export function HUD() {
         </div>
       )}
 
-      {phase === 'build' && mode !== 'city' && panel === 'inventory' && <InventoryPanel onClose={() => setPanel(null)} />}
-      {phase === 'build' && mode !== 'city' && panel === 'staff' && <StaffPanel onClose={() => setPanel(null)} />}
-      {phase === 'build' && mode !== 'city' && panel === 'marketing' && <MarketingPanel onClose={() => setPanel(null)} />}
-      {phase === 'build' && mode !== 'city' && panel === 'supply' && <SupplyChainPanel onClose={() => setPanel(null)} />}
-      {phase === 'build' && mode !== 'city' && panel === 'corporate' && <CorporateFinancePanel onClose={() => setPanel(null)} />}
-      {phase === 'build' && mode !== 'city' && panel === 'hq' && <HQPanel onClose={() => setPanel(null)} />}
-      {phase === 'build' && mode !== 'city' && panel === 'achievements' && <AchievementsPanel onClose={() => setPanel(null)} />}
-      {phase === 'build' && mode !== 'city' && panel === 'analytics' && <AnalyticsPanel onClose={() => setPanel(null)} />}
-      {phase === 'build' && mode !== 'city' && panel === 'finance' && <FinancePanel onClose={() => setPanel(null)} />}
-      {phase === 'build' && mode === 'city' && <CityMapPanel onClose={() => setMode('build')} />}
+      {phase === 'build' && mode !== 'city' && panel === 'inventory' && <InventoryPanel onClose={() => setPanel(null)} top={panelTop} />}
+      {phase === 'build' && mode !== 'city' && panel === 'staff' && <StaffPanel onClose={() => setPanel(null)} top={panelTop} />}
+      {phase === 'build' && mode !== 'city' && panel === 'marketing' && <MarketingPanel onClose={() => setPanel(null)} top={panelTop} />}
+      {phase === 'build' && mode !== 'city' && panel === 'supply' && <SupplyChainPanel onClose={() => setPanel(null)} top={panelTop} />}
+      {phase === 'build' && mode !== 'city' && panel === 'corporate' && <CorporateFinancePanel onClose={() => setPanel(null)} top={panelTop} />}
+      {phase === 'build' && mode !== 'city' && panel === 'hq' && <HQPanel onClose={() => setPanel(null)} top={panelTop} />}
+      {phase === 'build' && mode !== 'city' && panel === 'achievements' && <AchievementsPanel onClose={() => setPanel(null)} top={panelTop} />}
+      {phase === 'build' && mode !== 'city' && panel === 'analytics' && <AnalyticsPanel onClose={() => setPanel(null)} top={panelTop} />}
+      {phase === 'build' && mode !== 'city' && panel === 'finance' && <FinancePanel onClose={() => setPanel(null)} top={panelTop} />}
+      {phase === 'build' && mode === 'city' && <CityMapPanel onClose={() => setMode('build')} top={panelTop} />}
 
       {mode === 'walk' && (
         <>

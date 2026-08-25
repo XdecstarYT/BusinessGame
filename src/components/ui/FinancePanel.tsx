@@ -8,9 +8,10 @@ import { sectionLabel } from './theme'
 
 interface FinancePanelProps {
   onClose: () => void
+  top?: number
 }
 
-export function FinancePanel({ onClose }: FinancePanelProps) {
+export function FinancePanel({ onClose, top }: FinancePanelProps) {
   const cash = useFinance((s) => s.cash)
   const dailyRevenue = useFinance((s) => s.dailyRevenue)
   const dailyCogs = useFinance((s) => s.dailyCogs)
@@ -33,7 +34,7 @@ export function FinancePanel({ onClose }: FinancePanelProps) {
   const chartData = history.map((d) => ({ day: `D${d.day}`, profit: Math.round(d.profit * 100) / 100 }))
 
   return (
-    <PanelShell icon="dollar" title="Finance" onClose={onClose}>
+    <PanelShell icon="dollar" title="Finance" onClose={onClose} top={top}>
       <div className="px-4 py-3 space-y-1.5">
         <Row label="Cash on hand" value={`$${cash.toFixed(2)}`} emphasize />
         <Row label="Revenue (today)" value={`$${dailyRevenue.toFixed(2)}`} />

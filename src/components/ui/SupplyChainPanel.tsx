@@ -12,6 +12,7 @@ import { btn, sectionLabel, selectCls as themeSelectCls } from './theme'
 
 interface SupplyChainPanelProps {
   onClose: () => void
+  top?: number
 }
 
 const QUICK_QUANTITIES = [50, 100, 200]
@@ -26,7 +27,7 @@ const TIER_COLOR: Record<QualityTier, string> = {
   premium: 'text-amber-300/80',
 }
 
-export function SupplyChainPanel({ onClose }: SupplyChainPanelProps) {
+export function SupplyChainPanel({ onClose, top }: SupplyChainPanelProps) {
   const cash = useFinance((s) => s.cash)
   const currentDay = useGameClock((s) => s.day)
 
@@ -55,7 +56,7 @@ export function SupplyChainPanel({ onClose }: SupplyChainPanelProps) {
   const nextTier = WAREHOUSE_TIERS[warehouseTier + 1]
 
   return (
-    <PanelShell icon="truck" title="Supply Chain" onClose={onClose} width="w-96">
+    <PanelShell icon="truck" title="Supply Chain" onClose={onClose} width="w-96" top={top}>
       <div className="px-4 py-3">
         <div className={sectionLabel}>
           Warehouse: {WAREHOUSE_TIERS[warehouseTier].label} — {totalStockroomUnits} / {stockroomCapacity} units

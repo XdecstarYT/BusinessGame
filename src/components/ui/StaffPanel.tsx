@@ -8,11 +8,12 @@ import { btn, sectionLabel, selectCls } from './theme'
 
 interface StaffPanelProps {
   onClose: () => void
+  top?: number
 }
 
 const smallBtn = btn.ghost
 
-export function StaffPanel({ onClose }: StaffPanelProps) {
+export function StaffPanel({ onClose, top }: StaffPanelProps) {
   const cash = useFinance((s) => s.cash)
   const roster = useStaff((s) => s.roster)
   const hire = useStaff((s) => s.hire)
@@ -29,7 +30,7 @@ export function StaffPanel({ onClose }: StaffPanelProps) {
   const members = Object.values(roster)
 
   return (
-    <PanelShell icon="users" title="Staff & Atmosphere" onClose={onClose}>
+    <PanelShell icon="users" title="Staff & Atmosphere" onClose={onClose} top={top}>
       <div className="px-4 py-3">
         <div className={sectionLabel}>Hire</div>
         <div className="flex flex-col gap-1.5">

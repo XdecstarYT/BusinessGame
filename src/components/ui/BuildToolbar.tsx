@@ -104,95 +104,103 @@ export function BuildToolbar() {
     <div className="pointer-events-auto absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
       {status && <div className="rounded-full bg-[#171a22]/95 border border-white/10 text-white text-xs px-3 py-1 shadow-lg">{status}</div>}
 
-      <div className={`${chromeBar} gap-1.5 px-3 py-1.5`}>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/40 mr-1">Level</span>
-        {Array.from({ length: maxLevel + 1 }, (_, level) => (
-          <button key={level} onClick={() => setActiveLevel(level)} className={`${toolBtn(activeLevel === level)} px-2.5 py-1 text-xs`}>
-            {level === 0 ? 'Ground' : level + 1}
+      <div className={`${chromeBar} px-3 py-1.5 max-w-[94vw] overflow-x-auto`}>
+        <div className="flex items-center gap-1.5 w-max">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/40 mr-1 shrink-0">Level</span>
+          {Array.from({ length: maxLevel + 1 }, (_, level) => (
+            <button
+              key={level}
+              onClick={() => setActiveLevel(level)}
+              className={`${toolBtn(activeLevel === level)} px-2.5 py-1 text-xs shrink-0`}
+            >
+              {level === 0 ? 'Ground' : level + 1}
+            </button>
+          ))}
+          <button onClick={addLevel} className={`${btn.ghost} !text-xs shrink-0`} title="Add a new floor above">
+            + Add Floor
           </button>
-        ))}
-        <button onClick={addLevel} className={`${btn.ghost} !text-xs`} title="Add a new floor above">
-          + Add Floor
-        </button>
+        </div>
       </div>
 
-      <div className={`${chromeBar} gap-2 px-3 py-2`}>
-        {TOOL_OPTIONS.map((opt) => (
-          <button key={opt.tool} onClick={() => setTool(opt.tool)} className={toolBtn(tool === opt.tool)}>
-            {opt.label}
-            <span className="ml-1.5 text-[10px] opacity-70">${opt.cost}</span>
-          </button>
-        ))}
-
-        <div className={divider} />
-
-        <button
-          onClick={rotateSelection}
-          disabled={tool !== 'shelf' && tool !== 'checkout' && tool !== 'stairs'}
-          className={btn.ghost}
-          title="Rotate selection"
-        >
-          ⟳ Rotate
-        </button>
-
-        <button onClick={undo} disabled={pastLength === 0} className={btn.ghost}>
-          Undo
-        </button>
-        <button onClick={redo} disabled={futureLength === 0} className={btn.ghost}>
-          Redo
-        </button>
-
-        <div className={divider} />
-
-        {[0, 1, 2].map((slot) => (
-          <div key={slot} className="flex gap-0.5">
-            <button onClick={() => handleSave(slot)} className={btn.ghost} title={`Save to slot ${slot + 1}`}>
-              💾{slot + 1}
+      <div className={`${chromeBar} px-3 py-2 max-w-[94vw] overflow-x-auto`}>
+        <div className="flex items-center gap-2 w-max">
+          {TOOL_OPTIONS.map((opt) => (
+            <button key={opt.tool} onClick={() => setTool(opt.tool)} className={`${toolBtn(tool === opt.tool)} shrink-0`}>
+              {opt.label}
+              <span className="ml-1.5 text-[10px] opacity-70">${opt.cost}</span>
             </button>
-            <button onClick={() => handleLoad(slot)} className={btn.ghost} title={`Load slot ${slot + 1}`}>
-              📂{slot + 1}
-            </button>
-          </div>
-        ))}
-
-        <div className={divider} />
-
-        <button onClick={handleExport} className={btn.ghost}>
-          Export
-        </button>
-        <button onClick={handleImportClick} className={btn.ghost}>
-          Import
-        </button>
-        <input ref={fileInputRef} type="file" accept="application/json" onChange={handleImportFile} className="hidden" />
-
-        <div className={divider} />
-
-        <select
-          value=""
-          onChange={(e) => {
-            const template = STARTER_BLUEPRINTS.find((b) => b.name === e.target.value)
-            if (template && confirm(`Load starter template "${template.name}"? This replaces your current layout.`)) {
-              loadBlueprint(template)
-              flash(`Loaded "${template.name}"`)
-            }
-          }}
-          className="bg-white/[0.06] border border-white/10 rounded-lg text-sm px-2 py-1.5 text-white/80 focus:outline-none focus:border-emerald-400/50"
-        >
-          <option value="" disabled>
-            Starter templates…
-          </option>
-          {STARTER_BLUEPRINTS.map((b) => (
-            <option key={b.name} value={b.name} className="text-black">
-              {b.name}
-            </option>
           ))}
-        </select>
 
-        <div className={divider} />
+          <div className={`${divider} shrink-0`} />
 
-        <button onClick={() => confirm('Clear entire store layout?') && clearAll()} className={btn.danger}>
-          Clear
-        </button>
+          <button
+            onClick={rotateSelection}
+            disabled={tool !== 'shelf' && tool !== 'checkout' && tool !== 'stairs'}
+            className={`${btn.ghost} shrink-0`}
+            title="Rotate selection"
+          >
+            ⟳ Rotate
+          </button>
+
+          <button onClick={undo} disabled={pastLength === 0} className={`${btn.ghost} shrink-0`}>
+            Undo
+          </button>
+          <button onClick={redo} disabled={futureLength === 0} className={`${btn.ghost} shrink-0`}>
+            Redo
+          </button>
+
+          <div className={`${divider} shrink-0`} />
+
+          {[0, 1, 2].map((slot) => (
+            <div key={slot} className="flex gap-0.5 shrink-0">
+              <button onClick={() => handleSave(slot)} className={btn.ghost} title={`Save to slot ${slot + 1}`}>
+                💾{slot + 1}
+              </button>
+              <button onClick={() => handleLoad(slot)} className={btn.ghost} title={`Load slot ${slot + 1}`}>
+                📂{slot + 1}
+              </button>
+            </div>
+          ))}
+
+          <div className={`${divider} shrink-0`} />
+
+          <button onClick={handleExport} className={`${btn.ghost} shrink-0`}>
+            Export
+          </button>
+          <button onClick={handleImportClick} className={`${btn.ghost} shrink-0`}>
+            Import
+          </button>
+          <input ref={fileInputRef} type="file" accept="application/json" onChange={handleImportFile} className="hidden" />
+
+          <div className={`${divider} shrink-0`} />
+
+          <select
+            value=""
+            onChange={(e) => {
+              const template = STARTER_BLUEPRINTS.find((b) => b.name === e.target.value)
+              if (template && confirm(`Load starter template "${template.name}"? This replaces your current layout.`)) {
+                loadBlueprint(template)
+                flash(`Loaded "${template.name}"`)
+              }
+            }}
+            className="shrink-0 bg-white/[0.06] border border-white/10 rounded-lg text-sm px-2 py-1.5 text-white/80 focus:outline-none focus:border-emerald-400/50"
+          >
+            <option value="" disabled>
+              Starter templates…
+            </option>
+            {STARTER_BLUEPRINTS.map((b) => (
+              <option key={b.name} value={b.name} className="text-black">
+                {b.name}
+              </option>
+            ))}
+          </select>
+
+          <div className={`${divider} shrink-0`} />
+
+          <button onClick={() => confirm('Clear entire store layout?') && clearAll()} className={`${btn.danger} shrink-0`}>
+            Clear
+          </button>
+        </div>
       </div>
 
       <div className="text-[11px] text-white/60 bg-[#171a22]/90 border border-white/10 rounded-full px-3 py-0.5 shadow">

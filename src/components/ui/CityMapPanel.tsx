@@ -9,11 +9,12 @@ import { btn } from './theme'
 
 interface CityMapPanelProps {
   onClose: () => void
+  top?: number
 }
 
 const smallBtn = btn.ghost
 
-export function CityMapPanel({ onClose }: CityMapPanelProps) {
+export function CityMapPanel({ onClose, top }: CityMapPanelProps) {
   const cash = useFinance((s) => s.cash)
   const ownedPlotIds = useCityMap((s) => s.ownedPlotIds)
   const selectedPlotId = useCityMap((s) => s.selectedPlotId)
@@ -27,7 +28,7 @@ export function CityMapPanel({ onClose }: CityMapPanelProps) {
   const [scoutedPlotId, setScoutedPlotId] = useState<string | null>(null)
 
   return (
-    <PanelShell icon="city" title="City Map" onClose={onClose} position="top-20 right-4">
+    <PanelShell icon="city" title="City Map" onClose={onClose} position="right-4" top={top}>
       <div className="px-4 py-3">
         <div className="text-[11px] text-white/40 italic mb-3">
           Acquired locations run under a chain manager — see HQ for their numbers. A rival-held plot costs more to take, but buys them out.

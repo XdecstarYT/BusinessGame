@@ -9,11 +9,12 @@ import { btn, sectionLabel } from './theme'
 
 interface HQPanelProps {
   onClose: () => void
+  top?: number
 }
 
 const smallBtn = btn.ghost
 
-export function HQPanel({ onClose }: HQPanelProps) {
+export function HQPanel({ onClose, top }: HQPanelProps) {
   const cash = useFinance((s) => s.cash)
   const dailyRevenue = useFinance((s) => s.dailyRevenue)
   const reputationScore = useReputation((s) => s.score)
@@ -32,7 +33,7 @@ export function HQPanel({ onClose }: HQPanelProps) {
   const unlocked = franchiseUnlocked()
 
   return (
-    <PanelShell icon="building" title="HQ" onClose={onClose} width="w-96">
+    <PanelShell icon="building" title="HQ" onClose={onClose} width="w-96" top={top}>
       <div className="px-4 py-3">
         <div className={sectionLabel}>Chain-wide, today</div>
         <div className="flex items-center justify-between text-xs mb-1">

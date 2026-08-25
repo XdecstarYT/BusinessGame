@@ -9,6 +9,7 @@ import { rowBase, btn, sectionLabel, selectCls, inputCls } from './theme'
 
 interface InventoryPanelProps {
   onClose: () => void
+  top?: number
 }
 
 const PROMO_DISCOUNT = 20
@@ -22,7 +23,7 @@ const TIER_COLOR: Record<QualityTier, string> = {
   premium: 'text-amber-300/80',
 }
 
-export function InventoryPanel({ onClose }: InventoryPanelProps) {
+export function InventoryPanel({ onClose, top }: InventoryPanelProps) {
   const cash = useFinance((s) => s.cash)
   const stockroom = useInventory((s) => s.stockroom)
   const shelfStock = useInventory((s) => s.shelfStock)
@@ -50,7 +51,7 @@ export function InventoryPanel({ onClose }: InventoryPanelProps) {
   }, [category, search])
 
   return (
-    <PanelShell icon="box" title="Inventory" onClose={onClose}>
+    <PanelShell icon="box" title="Inventory" onClose={onClose} top={top}>
       <div className="px-4 py-3">
         <div className={sectionLabel}>
           Stockroom: {totalStockroomUnits} / {stockroomCapacity} units

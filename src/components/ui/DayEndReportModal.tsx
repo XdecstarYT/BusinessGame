@@ -12,7 +12,7 @@ export function DayEndReportModal() {
 
   return (
     <div className="pointer-events-auto absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[2px] z-50">
-      <div className="hud-panel-enter w-[26rem] rounded-2xl border border-white/10 bg-gradient-to-b from-[#1c1f29]/98 to-[#111319]/98 backdrop-blur-xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.85)] ring-1 ring-white/[0.06] overflow-hidden">
+      <div className="hud-panel-enter w-[26rem] max-w-[92vw] rounded-2xl border border-white/10 bg-gradient-to-b from-[#1c1f29]/98 to-[#111319]/98 backdrop-blur-xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.85)] ring-1 ring-white/[0.06] overflow-hidden">
         <div className="px-5 py-4 border-b border-white/10 flex items-center gap-3 bg-gradient-to-r from-emerald-500/10 to-transparent">
           <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-400/30">
             <Icon name="report" size={18} className="text-emerald-300" />

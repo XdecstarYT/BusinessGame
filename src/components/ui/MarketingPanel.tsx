@@ -6,11 +6,12 @@ import { btn, sectionLabel } from './theme'
 
 interface MarketingPanelProps {
   onClose: () => void
+  top?: number
 }
 
 const smallBtn = btn.ghost
 
-export function MarketingPanel({ onClose }: MarketingPanelProps) {
+export function MarketingPanel({ onClose, top }: MarketingPanelProps) {
   const cash = useFinance((s) => s.cash)
   const activeCampaign = useMarketing((s) => s.activeCampaign)
   const launchCampaign = useMarketing((s) => s.launchCampaign)
@@ -20,7 +21,7 @@ export function MarketingPanel({ onClose }: MarketingPanelProps) {
   const launchLoyalty = useLoyalty((s) => s.launchProgram)
 
   return (
-    <PanelShell icon="megaphone" title="Marketing" onClose={onClose}>
+    <PanelShell icon="megaphone" title="Marketing" onClose={onClose} top={top}>
       <div className="px-4 py-3">
         {activeCampaign ? (
           <div className="text-xs bg-emerald-500/15 border border-emerald-500/30 rounded-lg px-3 py-2 mb-3">
